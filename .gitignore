@@ -1,0 +1,49 @@
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+/build
+*.dblite
+*.dep
+*.d43
+*.pbd
+*.pyc
+/projects/telosb/settings
+/projects/telosb/03oos_openwsn/Debug
+/projects/telosb/03oos_openwsn/settings
+/projects/telosb/03oos_openwsn/path.txt
+/projects/telosb/03oos_openwsn/03oos_openwsn.ewd
+/projects/telosb/01bsp_jammer/Debug
+/projects/telosb/01bsp_jammer/settings
+/projects/telosb/01bsp_jammer/path.txt
+/projects/telosb/01bsp_jammer/01bsp_jammer.ewd
+/logparser/*.txt
+/logparser/*.parsed

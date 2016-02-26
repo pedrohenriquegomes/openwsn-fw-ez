@@ -1,0 +1,86 @@
+import os
+
+Import('env')
+
+localEnv = env.Clone()
+
+target = 'libopenstack'
+sources_c = [
+    'openstack.c',
+    #=== 02a-MAClow
+    os.path.join('02a-MAClow','topology.c'),
+    os.path.join('02a-MAClow','IEEE802154.c'),
+    os.path.join('02a-MAClow','IEEE802154E.c'),
+    os.path.join('02a-MAClow','adaptive_sync.c'),
+    #=== 02b-MAChigh
+    os.path.join('02b-MAChigh','neighbors.c'),
+    os.path.join('02b-MAChigh','processIE.c'),
+    os.path.join('02b-MAChigh','schedule.c'),
+    os.path.join('02b-MAChigh','sixtop.c'),
+    #=== cross-layers
+    os.path.join('cross-layers','idmanager.c'),
+    os.path.join('cross-layers','openqueue.c'),
+    os.path.join('cross-layers','openrandom.c'),
+    os.path.join('cross-layers','packetfunctions.c'),
+]
+sources_h = [
+    'openstack.h',
+    #=== 02a-MAClow
+    os.path.join('02a-MAClow','topology.h'),
+    os.path.join('02a-MAClow','IEEE802154.h'),
+    os.path.join('02a-MAClow','IEEE802154E.h'),
+    os.path.join('02a-MAClow','adaptive_sync.h'),
+    #=== 02b-MAChigh
+    os.path.join('02b-MAChigh','neighbors.h'),
+    os.path.join('02b-MAChigh','processIE.h'),
+    os.path.join('02b-MAChigh','schedule.h'),
+    os.path.join('02b-MAChigh','sixtop.h'),
+    #=== cross-layers
+    os.path.join('cross-layers','idmanager.h'),
+    os.path.join('cross-layers','openqueue.h'),
+    os.path.join('cross-layers','openrandom.h'),
+    os.path.join('cross-layers','packetfunctions.h'),
+]
+
+if localEnv['board']=='python':
+    
+    for s in sources_c+sources_h:
+        temp = localEnv.Objectify(
+            target = localEnv.ObjectifiedFilename(s),
+            source = s,
+        )
+        #localEnv.AlwaysBuild(temp)
+    
+    libopenstack = localEnv.Library(
+        target = target,
+        source = [localEnv.ObjectifiedFilename(s) for s in sources_c],
+    )
+    localEnv.Depends(libopenstack,[localEnv.ObjectifiedFilename(s) for s in sources_h])
+    
+else:
+    
+    localEnv.Append(
+        CPPPATH =  [
+            # inc
+            os.path.join('#','inc'),
+            # kernel
+            os.path.join('#','kernel'),
+            # drivers
+            os.path.join('#','drivers','common'),
+            # openstack
+            os.path.join('#','openstack'),
+            os.path.join('#','openstack','02a-MAClow'),
+            os.path.join('#','openstack','02b-MAChigh'),
+            os.path.join('#','openstack','cross-layers'),
+            # openapps
+            # TODO: remove once cleaned-up?
+            os.path.join('#','openapps','light'),
+        ],
+    )
+    
+    libopenstack = localEnv.Library(
+        target = target,
+        source = sources_c,
+    )
+
+Alias('libopenstack', libopenstack)
