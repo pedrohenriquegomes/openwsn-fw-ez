@@ -138,15 +138,6 @@ typedef struct {
 
 //=========================== prototypes ======================================
 
-void ieee802154_prependHeader(OpenQueueEntry_t* msg,
-                              uint8_t           frameType,
-                              bool              payloadIEPresent,
-                              uint8_t           sequenceNumber,
-                              open_addr_t*      nextHop);
-
-void ieee802154_retrieveHeader (OpenQueueEntry_t*      msg,
-                                ieee802154_header_iht* ieee802514_header);
-
 /**
 \}
 \}

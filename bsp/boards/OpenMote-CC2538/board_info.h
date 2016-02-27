@@ -60,8 +60,8 @@
 //===== IEEE802154E timing
 
 // time-slot related
-//#define PORT_TsSlotDuration               492   // counter counts one extra count, see datasheet
-#define PORT_TsSlotDuration                 197 // TsTxOffset (131) + WdDataDuration (66)
+#define PORT_TsSlotDuration               492   // counter counts one extra count, see datasheet
+
 // execution speed related
 #define PORT_maxTxDataPrepare               66    // 2014us (measured 746us)
 #define PORT_maxRxAckPrepare                10    //  305us (measured  83us)

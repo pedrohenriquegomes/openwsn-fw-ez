@@ -14,27 +14,8 @@
 
 //=== hardcoded addresses (last 2 bytes of the EUI64)
 
-/*
-// Pedro@USC
-#define SINK_ID                   0xed4e
-#define SENSOR_ID                 0x89a5
-// Thomas@Inria
 #define SINK_ID                   0x6f16
 #define SENSOR_ID                 0xb957
-// Thomas@home
-#define SINK_ID                   0xbb5e
-#define SENSOR_ID                 0x930f
-*/
-
-#ifdef SETUP_USBHUB
-#define SINK_ID                   0x6f16
-#define SENSOR_ID                 0xb957
-#endif
-
-#ifdef SETUP_TESTBED
-#define SINK_ID                   0x76fb
-#define SENSOR_ID                 0x86a0
-#endif
 
 //=========================== typedef ==========================================
 
@@ -42,7 +23,8 @@ BEGIN_PACK
 typedef struct {                            // always written big endian, i.e. MSB in addr[0]
    uint16_t  type;
    uint16_t  src;
-   uint8_t   syncnum;
+   uint16_t  dst;
+   uint8_t   seqnum;
    uint8_t   light_info;
 } light_ht;
 END_PACK

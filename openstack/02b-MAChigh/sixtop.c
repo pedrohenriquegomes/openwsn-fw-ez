@@ -228,6 +228,14 @@ IEEE802154E will handle the packet.
 */
 owerror_t sixtop_send_internal(OpenQueueEntry_t* msg) {
    
+  // assign a number of retries
+   if (
+      packetfunctions_isBroadcastMulticast(&(msg->l2_nextORpreviousHop))==TRUE
+      ) {
+      msg->l2_retriesLeft = 1;
+   } else {
+      msg->l2_retriesLeft = TXRETRIES + 1;
+   }
    // assign a number of retries
    msg->l2_retriesLeft = 1;
    // this is a new packet which I never attempted to send
@@ -236,6 +244,7 @@ owerror_t sixtop_send_internal(OpenQueueEntry_t* msg) {
    msg->l1_txPower = TX_POWER;
    // change owner to IEEE802154E fetches it from queue
    msg->owner  = COMPONENT_SIXTOP_TO_IEEE802154E;
+   
    return E_SUCCESS;
 }
 

@@ -60,6 +60,14 @@ typedef struct {                                 // always written big endian, i
 } eb_ht;
 END_PACK
 
+BEGIN_PACK
+typedef struct {                                 // always written big endian, i.e. MSB in addr[0]
+   uint16_t  type;
+   uint16_t  src;
+   uint16_t  dst;
+} ack_ht;
+END_PACK
+
 //=========================== typedef =========================================
 
 #define SIX2SIX_TIMEOUT_MS 4000

@@ -27,15 +27,9 @@ static const uint8_t chTemplate_eb[] = {
 #define EB_SLOWHOPPING_PERIOD    1000  // how often a node changes the channel it listens on for EBs, in slots (1000=4610ms)
 //=========================== define ==========================================
 
-#ifdef SETUP_USBHUB
 #define LONGTYPE_BEACON           0xb0b0
 #define LONGTYPE_DATA             0xd0d0
-#endif
-
-#ifdef SETUP_TESTBED
-#define LONGTYPE_BEACON           0xbbbb
-#define LONGTYPE_DATA             0xdddd
-#endif
+#define LONGTYPE_ACK              0xa0a0  
 
 #define SYNCHRONIZING_CHANNEL       26 // channel the mote listens on to synchronize
 #define TXRETRIES                    0 // number of MAC retries before declaring failed
@@ -158,9 +152,9 @@ typedef enum {
 //    - duration_in_seconds = ticks / 32768
 enum ieee154e_atomicdurations_enum {
    // time-slot related
-   TsTxOffset                =  67,                   // 67=2045us
-   TsLongGT                  =  13,                   // 13= 400us
-   TsTxAckDelay              =   0,
+   TsTxOffset                =  131,                  //  4000us
+   TsLongGT                  =   43,                  //  1300us
+   TsTxAckDelay              =  151,                  //  4606us
    TsShortGT                 =  16,                   //     500us
    TsSlotDuration            =  PORT_TsSlotDuration,
    // execution speed related
@@ -172,9 +166,9 @@ enum ieee154e_atomicdurations_enum {
    delayTx                   =  PORT_delayTx,         // between GO signal and SFD
    delayRx                   =  PORT_delayRx,         // between GO signal and start listening
    // radio watchdog
-   wdRadioTx                 =  16,                   //  16=488us (needs to be >delayTx)
-   wdDataDuration            =  98,                   //     500us
-   wdAckDuration             =  98,                   //    3000us (measured 1000us)
+   wdRadioTx                 =   33,                  //  1000us (needs to be >delayTx)
+   wdDataDuration            =  164,                  //  5000us (measured 4280us with max payload)
+   wdAckDuration             =  98,                   //  3000us (measured 1000us)
 };
 
 //shift of bytes in the linkOption bitmap: draft-ietf-6tisch-minimal-10.txt: page 6
@@ -191,11 +185,19 @@ enum ieee154e_linkOption_enum {
 #define DURATION_tt2 ieee154e_vars.lastCapturedTime+TsTxOffset-delayTx
 #define DURATION_tt3 ieee154e_vars.lastCapturedTime+TsTxOffset-delayTx+wdRadioTx
 #define DURATION_tt4 ieee154e_vars.lastCapturedTime+wdDataDuration
+#define DURATION_tt5 ieee154e_vars.lastCapturedTime+TsTxAckDelay-TsShortGT-delayRx-maxRxAckPrepare
+#define DURATION_tt6 ieee154e_vars.lastCapturedTime+TsTxAckDelay-TsShortGT-delayRx
+#define DURATION_tt7 ieee154e_vars.lastCapturedTime+TsTxAckDelay+TsShortGT
+#define DURATION_tt8 ieee154e_vars.lastCapturedTime+wdAckDuration
 // RX
 #define DURATION_rt1 ieee154e_vars.lastCapturedTime+TsTxOffset-TsLongGT-delayRx-maxRxDataPrepare
 #define DURATION_rt2 ieee154e_vars.lastCapturedTime+TsTxOffset-TsLongGT-delayRx
 #define DURATION_rt3 ieee154e_vars.lastCapturedTime+TsTxOffset+TsLongGT
 #define DURATION_rt4 ieee154e_vars.lastCapturedTime+wdDataDuration
+#define DURATION_rt5 ieee154e_vars.lastCapturedTime+TsTxAckDelay-delayTx-maxTxAckPrepare
+#define DURATION_rt6 ieee154e_vars.lastCapturedTime+TsTxAckDelay-delayTx
+#define DURATION_rt7 ieee154e_vars.lastCapturedTime+TsTxAckDelay-delayTx+wdRadioTx
+#define DURATION_rt8 ieee154e_vars.lastCapturedTime+wdAckDuration
 
 //=========================== typedef =========================================
 
@@ -300,7 +302,6 @@ void               ieee154e_endOfFrame(PORT_RADIOTIMER_WIDTH capturedTime);
 bool               debugPrint_asn(void);
 bool               debugPrint_isSync(void);
 bool               debugPrint_macStats(void);
-  
 /**
 \}
 \}

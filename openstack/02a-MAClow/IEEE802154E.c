@@ -41,6 +41,13 @@ void     activity_tie2(void);
 void     activity_ti4(PORT_RADIOTIMER_WIDTH capturedTime);
 void     activity_tie3(void);
 void     activity_ti5(PORT_RADIOTIMER_WIDTH capturedTime);
+void     activity_ti6(void);
+void     activity_tie4(void);
+void     activity_ti7(void);
+void     activity_tie5(void);
+void     activity_ti8(PORT_RADIOTIMER_WIDTH capturedTime);
+void     activity_tie6(void);
+void     activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime);
 
 // RX
 void     activity_ri2(void);
@@ -50,14 +57,18 @@ void     activity_rie2(void);
 void     activity_ri4(PORT_RADIOTIMER_WIDTH capturedTime);
 void     activity_rie3(void);
 void     activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime);
+void     activity_ri6(void);
+void     activity_rie4(void);
+void     activity_ri7(void);
+void     activity_rie5(void);
+void     activity_ri8(PORT_RADIOTIMER_WIDTH capturedTime);
+void     activity_rie6(void);
+void     activity_ri9(PORT_RADIOTIMER_WIDTH capturedTime);
 
-// frame validity check
-bool     isValidRxFrame(ieee802154_header_iht* ieee802514_header);
 // ASN handling
 void     incrementAsnOffset(void);
 void     ieee154e_syncSlotOffset(void);
 void     asnStoreFromEB(uint8_t* asn);
-void     joinPriorityStoreFromEB(uint8_t jp);
 
 // timeslot template handling
 void     timeslotTemplateIDStoreFromEB(uint8_t id);
@@ -75,6 +86,7 @@ void     updateStats(PORT_SIGNED_INT_WIDTH timeCorrection);
 // misc
 uint8_t  calculateFrequency(uint8_t channelOffset);
 void     changeState(ieee154e_state_t newstate);
+bool     isPktBroadcast(OpenQueueEntry_t* pkt);
 void     endSlot(void);
 bool     debugPrint_asn(void);
 bool     debugPrint_isSync(void);
@@ -99,7 +111,6 @@ void ieee154e_init() {
    ieee154e_vars.singleChannel     = 0;
    ieee154e_vars.nextChannelEB     = SYNCHRONIZING_CHANNEL - 11;
    
-   ieee154e_vars.isAckEnabled      = TRUE;
    ieee154e_vars.isSecurityEnabled = FALSE;
    // default hopping template
    memcpy(
@@ -220,6 +231,21 @@ void isr_ieee154e_timer() {
       case S_TXDATA:
          activity_tie3();
          break;
+      case S_RXACKOFFSET:
+         activity_ti6();
+         break;
+      case S_RXACKPREPARE:
+         activity_tie4();
+         break;
+      case S_RXACKREADY:
+         activity_ti7();
+         break;
+      case S_RXACKLISTEN:
+         activity_tie5();
+         break;
+      case S_RXACK:
+         activity_tie6();
+         break;
       case S_RXDATAOFFSET:
          activity_ri2(); 
          break;
@@ -234,6 +260,21 @@ void isr_ieee154e_timer() {
          break;
       case S_RXDATA:
          activity_rie3();
+         break;
+      case S_TXACKOFFSET: 
+         activity_ri6();
+         break;
+      case S_TXACKPREPARE:
+         activity_rie4();
+         break;
+      case S_TXACKREADY:
+         activity_ri7();
+         break;
+      case S_TXACKDELAY:
+         activity_rie5();
+         break;
+      case S_TXACK:
+         activity_rie6();
          break;
       default:
          // log the error
@@ -260,6 +301,17 @@ void ieee154e_startOfFrame(PORT_RADIOTIMER_WIDTH capturedTime) {
          case S_TXDATADELAY:   
             activity_ti4(capturedTime);
             break;
+         case S_RXACKREADY:
+            /*
+            It is possible to receive in this state for radio where there is no
+            way of differentiated between "ready to listen" and "listening"
+            (e.g. CC2420). We must therefore expect to the start of a packet in
+            this "ready" state.
+            */
+            // no break!
+         case S_RXACKLISTEN:
+            activity_ti8(capturedTime);
+            break;
          case S_RXDATAREADY:
             /*
             Similarly as above.
@@ -267,6 +319,9 @@ void ieee154e_startOfFrame(PORT_RADIOTIMER_WIDTH capturedTime) {
             // no break!
          case S_RXDATALISTEN:
             activity_ri4(capturedTime);
+            break;
+         case S_TXACKDELAY:
+            activity_ri8(capturedTime);
             break;
          default:
             // log the error
@@ -294,8 +349,14 @@ void ieee154e_endOfFrame(PORT_RADIOTIMER_WIDTH capturedTime) {
          case S_TXDATA:
             activity_ti5(capturedTime);
             break;
+         case S_RXACK:
+            activity_ti9(capturedTime);
+            break;
          case S_RXDATA:
             activity_ri5(capturedTime);
+            break;
+         case S_TXACK:
+            activity_ri9(capturedTime);
             break;
          default:
             // log the error
@@ -704,9 +765,6 @@ port_INLINE void activity_ti1ORri1() {
       return;
    }
    
-   // trigger application, which can send packet
-   light_trigger(ieee154e_vars.slotOffset);
-   
    // check the schedule to see what type of slot this is
    cellType = schedule_getType();
    switch (cellType) {
@@ -774,7 +832,15 @@ port_INLINE void activity_ti1ORri1() {
             radiotimer_schedule(DURATION_tt1);
          }
          break;
-      default:
+      case CELLTYPE_TX:
+	     // abort
+         endSlot();
+		 break;
+      case CELLTYPE_RX:
+	     // abort
+         endSlot();
+	     break;
+	  default:
          // stop using serial
          openserial_stop();
          // log the error
@@ -877,6 +943,7 @@ port_INLINE void activity_tie3() {
 }
 
 port_INLINE void activity_ti5(PORT_RADIOTIMER_WIDTH capturedTime) {
+   bool listenForAck;
    
    // change state
    changeState(S_RXACKOFFSET);
@@ -892,16 +959,213 @@ port_INLINE void activity_ti5(PORT_RADIOTIMER_WIDTH capturedTime) {
    // record the captured time
    ieee154e_vars.lastCapturedTime = capturedTime;
    
-   // we do not listen for ACK
+   // decides whether to listen for an ACK
+   if (isPktBroadcast(ieee154e_vars.dataToSend)==TRUE) {
+      listenForAck = FALSE;
+   } else {
+      listenForAck = TRUE;
+   }  
+
+   if (listenForAck==TRUE) {
+      // arm tt5
+      radiotimer_schedule(DURATION_tt5);
+   } else {
+      // indicate succesful Tx to schedule to keep statistics
+      schedule_indicateTx(&ieee154e_vars.asn,TRUE);
+      // indicate to upper later the packet was sent successfully
+      notif_sendDone(ieee154e_vars.dataToSend,E_SUCCESS);
+      // reset local variable
+      ieee154e_vars.dataToSend = NULL;
+      // abort
+      endSlot();
+   }   
+}
+
+port_INLINE void activity_ti6() {
+   // change state
+   changeState(S_RXACKPREPARE);
+   
+   // calculate the frequency to transmit on
+   ieee154e_vars.freq = calculateFrequency(schedule_getChannelOffset()); 
+   
+   // configure the radio for that frequency
+   radio_setFrequency(ieee154e_vars.freq);
+   
+   // enable the radio in Rx mode. The radio is not actively listening yet.
+   radio_rxEnable();
+   //caputre init of radio for duty cycle calculation
+   ieee154e_vars.radioOnInit=radio_getTimerValue();
+   ieee154e_vars.radioOnThisSlot=TRUE;
+   // arm tt6
+   radiotimer_schedule(DURATION_tt6);
+   
+   // change state
+   changeState(S_RXACKREADY);
+}
+
+port_INLINE void activity_tie4() {
+   // log the error
+   openserial_printError(COMPONENT_IEEE802154E,ERR_MAXRXACKPREPARE_OVERFLOWS,
+                         (errorparameter_t)ieee154e_vars.state,
+                         (errorparameter_t)ieee154e_vars.slotOffset);
+   
+   // abort
+   endSlot();
+}
+
+port_INLINE void activity_ti7() {
+   // change state
+   changeState(S_RXACKLISTEN);
+   
+   // start listening
+   radio_rxNow();
+   
+   // arm tt7
+   radiotimer_schedule(DURATION_tt7);
+}
+
+port_INLINE void activity_tie5() {
+   // indicate transmit failed to schedule to keep stats
+   schedule_indicateTx(&ieee154e_vars.asn,FALSE);
+   
+   // decrement transmits left counter
+   ieee154e_vars.dataToSend->l2_retriesLeft--;
+   
+   if (ieee154e_vars.dataToSend->l2_retriesLeft==0) {
+      // indicate tx fail if no more retries left
+      notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
+   } else {
+      // return packet to the virtual COMPONENT_SIXTOP_TO_IEEE802154E component
+      ieee154e_vars.dataToSend->owner = COMPONENT_SIXTOP_TO_IEEE802154E;
+   }
+   
+   // reset local variable
+   ieee154e_vars.dataToSend = NULL;
+   
+   // abort
+   endSlot();
+}
+
+port_INLINE void activity_ti8(PORT_RADIOTIMER_WIDTH capturedTime) {
+   // change state
+   changeState(S_RXACK);
+   
+   // cancel tt7
+   radiotimer_cancel();
+   
+   // record the captured time
+   ieee154e_vars.lastCapturedTime = capturedTime;
+   
+   // arm tt8
+   radiotimer_schedule(DURATION_tt8);
+}
+
+port_INLINE void activity_tie6() {
+   // abort
+   endSlot();
+}
+
+port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
+   ack_ht* ack;
+   
+   // change state
+   changeState(S_TXPROC);
+   
+   // cancel tt8
+   radiotimer_cancel();
+   
+   // turn off the radio
+   radio_rfOff();
+   
+   //compute tics radio on.
+   ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
+   
+   // record the captured time
+   ieee154e_vars.lastCapturedTime = capturedTime;
+   
+   // get a buffer to put the (received) ACK in
+   ieee154e_vars.ackReceived = openqueue_getFreePacketBuffer(COMPONENT_IEEE802154E);
+   if (ieee154e_vars.ackReceived==NULL) {
+      // log the error
+      openserial_printError(COMPONENT_IEEE802154E,ERR_NO_FREE_PACKET_BUFFER,
+                            (errorparameter_t)0,
+                            (errorparameter_t)0);
+      // abort
+      endSlot();
+      return;
+   }
+   
+   // declare ownership over that packet
+   ieee154e_vars.ackReceived->creator = COMPONENT_IEEE802154E;
+   ieee154e_vars.ackReceived->owner   = COMPONENT_IEEE802154E;
+   
+   /*
+   The do-while loop that follows is a little parsing trick.
+   Because it contains a while(0) condition, it gets executed only once.
+   Below the do-while loop is some code to cleans up the ack variable.
+   Anywhere in the do-while loop, a break statement can be called to jump to
+   the clean up code early. If the loop ends without a break, the received
+   packet was correct. If it got aborted early (through a break), the packet
+   was faulty.
+   */
+   do { // this "loop" is only executed once
       
-    // indicate succesful Tx to schedule to keep statistics
-    schedule_indicateTx(&ieee154e_vars.asn,TRUE);
-    // indicate to upper later the packet was sent successfully
-    notif_sendDone(ieee154e_vars.dataToSend,E_SUCCESS);
-    // reset local variable
-    ieee154e_vars.dataToSend = NULL;
-    // abort
-    endSlot();
+      // retrieve the received ack frame from the radio's Rx buffer
+      ieee154e_vars.ackReceived->payload = &(ieee154e_vars.ackReceived->packet[FIRST_FRAME_BYTE]);
+      radio_getReceivedFrame(       ieee154e_vars.ackReceived->payload,
+                                   &ieee154e_vars.ackReceived->length,
+                             sizeof(ieee154e_vars.ackReceived->packet),
+                                   &ieee154e_vars.ackReceived->l1_rssi,
+                                   &ieee154e_vars.ackReceived->l1_lqi,
+                                   &ieee154e_vars.ackReceived->l1_crc);
+      
+      // break if wrong length
+      if (ieee154e_vars.dataReceived->length!=sizeof(ack_ht)+2) {
+         break;
+      }
+      
+      // toss CRC (2 last bytes)
+      packetfunctions_tossFooter(   ieee154e_vars.ackReceived, LENGTH_CRC);
+   
+      // break if invalid CRC
+      if (ieee154e_vars.ackReceived->l1_crc==FALSE) {
+         // break from the do-while loop and execute the clean-up code below
+         break;
+      }
+      
+      // parse the hack
+      ack = (ack_ht*)ieee154e_vars.ackReceived->payload;
+ 
+      // break if invalid ACK
+      if (ack->type != LONGTYPE_ACK) {
+         break;
+      }
+      
+      // break if destination and source are not correct (we use ACK header since it is the same for data_ht)
+      if (ack->dst != idmanager_getMyShortID() || 
+          ack->src != ((ack_ht*)(ieee154e_vars.dataToSend->payload))->dst ) {
+         // break from the do-while loop and execute the clean-up code below
+         break;
+      }
+      
+      // inform schedule of successful transmission
+      schedule_indicateTx(&ieee154e_vars.asn,TRUE);
+      
+      // inform upper layer
+      notif_sendDone(ieee154e_vars.dataToSend,E_SUCCESS);
+      ieee154e_vars.dataToSend = NULL;
+      
+      // in any case, execute the clean-up code below (processing of ACK done)
+   } while (0);
+   
+   // free the received ack so corresponding RAM memory can be recycled
+   openqueue_freePacketBuffer(ieee154e_vars.ackReceived);
+   
+   // clear local variable
+   ieee154e_vars.ackReceived = NULL;
+   
+   // official end of Tx slot
+   endSlot();
 }
 
 //======= RX
@@ -1053,7 +1317,7 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
          break;
       }
       
-      // parse as if it's an EB (light_ht and eb_ht) start with the same bytes
+      // parse as if it's an EB (data_ht and eb_ht) start with the same bytes
       eb = (eb_ht*)ieee154e_vars.dataReceived->payload;
       
       // break if wrong type
@@ -1068,25 +1332,31 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
       
       // record the captured time
       ieee154e_vars.lastCapturedTime = capturedTime;
+            
+      // check if ack requested
+      if(isPktBroadcast(ieee154e_vars.dataReceived) == FALSE) {
+         // arm rt5
+         radiotimer_schedule(DURATION_rt5);
+      } else {
+         // synchronize to the received packet iif I'm not a DAGroot and this is my preferred parent
+         if (
+            idmanager_getIsDAGroot()==FALSE &&
+            neighbors_isPreferredParent(eb->src) &&
+            eb->syncnum!=ieee154e_vars.syncnum
+         ) {
+            synchronizePacket(ieee154e_vars.syncCapturedTime);
+            ieee154e_vars.syncnum = eb->syncnum;
+         }
       
-      // synchronize to the received packet iif I'm not a DAGroot and this is my preferred parent
-      if (
-         idmanager_getIsDAGroot()==FALSE &&
-         neighbors_isPreferredParent(eb->src) &&
-         eb->syncnum!=ieee154e_vars.syncnum
-      ) {
-         synchronizePacket(ieee154e_vars.syncCapturedTime);
-         ieee154e_vars.syncnum = eb->syncnum;
+         // indicate reception to upper layer
+         notif_receive(ieee154e_vars.dataReceived);
+      
+         // reset local variable
+         ieee154e_vars.dataReceived = NULL;
+      
+         // abort
+         endSlot();
       }
-      
-      // indicate reception to upper layer
-      notif_receive(ieee154e_vars.dataReceived);
-      
-      // reset local variable
-      ieee154e_vars.dataReceived = NULL;
-      
-      // abort
-      endSlot();
       
       // everything went well, return here not to execute the error code below
       return;
@@ -1103,32 +1373,154 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
    endSlot();
 }
 
-//======= frame validity check
+port_INLINE void activity_ri6() {
+   
+   // change state
+   changeState(S_TXACKPREPARE);
+   
+   // get a buffer to put the ack to send in
+   ieee154e_vars.ackToSend = openqueue_getFreePacketBuffer(COMPONENT_IEEE802154E);
+   if (ieee154e_vars.ackToSend==NULL) {
+      // log the error
+      openserial_printError(COMPONENT_IEEE802154E,ERR_NO_FREE_PACKET_BUFFER,
+                            (errorparameter_t)0,
+                            (errorparameter_t)0);
+      // indicate we received a packet anyway (we don't want to loose any)
+      notif_receive(ieee154e_vars.dataReceived);
+      // free local variable
+      ieee154e_vars.dataReceived = NULL;
+      // abort
+      endSlot();
+      return;
+   }
+   
+   // declare ownership over that packet
+   ieee154e_vars.ackToSend->creator = COMPONENT_IEEE802154E;
+   ieee154e_vars.ackToSend->owner   = COMPONENT_IEEE802154E;
+   
+   // calculate the time timeCorrection (this is the time the sender is off w.r.t to this node. A negative number means
+   // the sender is too late.
+   ieee154e_vars.timeCorrection = (PORT_SIGNED_INT_WIDTH)((PORT_SIGNED_INT_WIDTH)TsTxOffset-(PORT_SIGNED_INT_WIDTH)ieee154e_vars.syncCapturedTime);
+   
+   // prepend the IEEE802.15.4 header to the ACK
+   ieee154e_vars.ackToSend->l2_frameType = IEEE154_TYPE_ACK;
+   
+   // fill in ACK
+   ack_ht *ack = (ack_ht *)(ieee154e_vars.ackToSend->payload);
+   packetfunctions_reserveHeaderSize(ieee154e_vars.ackToSend,sizeof(ack_ht));
+   ack->type            = LONGTYPE_ACK;
+   ack->src             = idmanager_getMyShortID();
+   ack->dst             = ((eb_ht*)(ieee154e_vars.dataReceived->payload))->src;
+   
+   // space for 2-byte CRC
+   packetfunctions_reserveFooterSize(ieee154e_vars.ackToSend,2);
+  
+    // calculate the frequency to transmit on
+   ieee154e_vars.freq = calculateFrequency(schedule_getChannelOffset()); 
+   
+   // configure the radio for that frequency
+   radio_setFrequency(ieee154e_vars.freq);
+   
+   // load the packet in the radio's Tx buffer
+   radio_loadPacket(ieee154e_vars.ackToSend->payload,
+                    ieee154e_vars.ackToSend->length);
+   
+   // enable the radio in Tx mode. This does not send that packet.
+   radio_txEnable();
+   ieee154e_vars.radioOnInit=radio_getTimerValue();
+   ieee154e_vars.radioOnThisSlot=TRUE;
+   // arm rt6
+   radiotimer_schedule(DURATION_rt6);
+   
+   // change state
+   changeState(S_TXACKREADY);
+}
 
-/**
-\brief Decides whether the packet I just received is valid received frame.
+port_INLINE void activity_rie4() {
+   // log the error
+   openserial_printError(COMPONENT_IEEE802154E,ERR_MAXTXACKPREPARE_OVERFLOWS,
+                         (errorparameter_t)ieee154e_vars.state,
+                         (errorparameter_t)ieee154e_vars.slotOffset);
+   
+   // abort
+   endSlot();
+}
 
-A valid Rx frame satisfies the following constraints:
-- its IEEE802.15.4 header is well formatted
-- it's a DATA of BEACON frame (i.e. not ACK and not COMMAND)
-- it's sent on the same PANid as mine
-- it's for me (unicast or broadcast)
+port_INLINE void activity_ri7() {
+   // change state
+   changeState(S_TXACKDELAY);
+   
+   // arm rt7
+   radiotimer_schedule(DURATION_rt7);
+   
+   // give the 'go' to transmit
+   radio_txNow(); 
+}
 
-\param[in] ieee802514_header IEEE802.15.4 header of the packet I just received
+port_INLINE void activity_rie5() {
+   // log the error
+   openserial_printError(COMPONENT_IEEE802154E,ERR_WDRADIOTX_OVERFLOWS,
+                         (errorparameter_t)ieee154e_vars.state,
+                         (errorparameter_t)ieee154e_vars.slotOffset);
+   
+   // abort
+   endSlot();
+}
 
-\returns TRUE if packet is valid received frame, FALSE otherwise
-*/
-port_INLINE bool isValidRxFrame(ieee802154_header_iht* ieee802514_header) {
-   return ieee802514_header->valid==TRUE                                                           && \
-          (
-             ieee802514_header->frameType==IEEE154_TYPE_DATA                   ||
-             ieee802514_header->frameType==IEEE154_TYPE_BEACON
-          )                                                                                        && \
-          packetfunctions_sameAddress(&ieee802514_header->panid,idmanager_getMyID(ADDR_PANID))     && \
-          (
-             idmanager_isMyAddress(&ieee802514_header->dest)                   ||
-             packetfunctions_isBroadcastMulticast(&ieee802514_header->dest)
-          );
+port_INLINE void activity_ri8(PORT_RADIOTIMER_WIDTH capturedTime) {
+   // change state
+   changeState(S_TXACK);
+   
+   // cancel rt7
+   radiotimer_cancel();
+   
+   // record the captured time
+   ieee154e_vars.lastCapturedTime = capturedTime;
+   
+   // arm rt8
+   radiotimer_schedule(DURATION_rt8);
+}
+
+port_INLINE void activity_rie6() {
+   // log the error
+   openserial_printError(COMPONENT_IEEE802154E,ERR_WDACKDURATION_OVERFLOWS,
+                         (errorparameter_t)ieee154e_vars.state,
+                         (errorparameter_t)ieee154e_vars.slotOffset);
+   
+   // abort
+   endSlot();
+}
+
+port_INLINE void activity_ri9(PORT_RADIOTIMER_WIDTH capturedTime) {
+   // change state
+   changeState(S_RXPROC);
+   
+   // cancel rt8
+   radiotimer_cancel();
+  
+   // record the captured time
+   ieee154e_vars.lastCapturedTime = capturedTime;
+   
+   // free the ack we just sent so corresponding RAM memory can be recycled
+   openqueue_freePacketBuffer(ieee154e_vars.ackToSend);
+   
+   // clear local variable
+   ieee154e_vars.ackToSend = NULL;
+   
+   // synchronize to the received packet
+   if (idmanager_getIsDAGroot()==FALSE && 
+       neighbors_isPreferredParent(((eb_ht*)(ieee154e_vars.dataReceived->payload))->src)) {
+      synchronizePacket(ieee154e_vars.syncCapturedTime);
+   }
+   
+   // inform upper layer of reception (after ACK sent)
+   notif_receive(ieee154e_vars.dataReceived);
+   
+   // clear local variable
+   ieee154e_vars.dataReceived = NULL;
+   
+   // official end of Rx slot
+   endSlot();
 }
 
 //======= ASN handling
@@ -1171,11 +1563,6 @@ port_INLINE uint16_t ieee154e_getTimeCorrection() {
     return returnVal;
 }
 
-port_INLINE void joinPriorityStoreFromEB(uint8_t jp){
-  ieee154e_vars.dataReceived->l2_joinPriority = jp;
-  ieee154e_vars.dataReceived->l2_joinPriorityPresent = TRUE;     
-}
-
 port_INLINE void asnStoreFromEB(uint8_t* asn) {
    
    // store the ASN
@@ -1200,10 +1587,6 @@ port_INLINE void ieee154e_syncSlotOffset() {
    slotOffset = slotOffset % SLOTFRAME_LENGTH;
    
    ieee154e_vars.slotOffset       = (slotOffset_t) slotOffset;
-}
-
-void ieee154e_setIsAckEnabled(bool isEnabled){
-    ieee154e_vars.isAckEnabled = isEnabled;
 }
 
 void ieee154e_setSingleChannel(uint8_t channel){
@@ -1504,6 +1887,19 @@ void endSlot() {
    
    // change state
    changeState(S_SLEEP);
+}
+
+bool isPktBroadcast(OpenQueueEntry_t* pkt){
+   // parse as a ack_ht
+   ack_ht *payload = (ack_ht *)pkt->payload;
+  
+   bool retVal = TRUE;
+  
+   if (payload->type != LONGTYPE_BEACON && payload->dst != 0xffff){
+      retVal = FALSE;  
+   }
+      
+   return retVal;
 }
 
 bool ieee154e_isSynch(){
