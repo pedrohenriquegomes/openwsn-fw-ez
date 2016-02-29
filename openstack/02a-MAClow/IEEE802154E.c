@@ -190,8 +190,6 @@ void isr_ieee154e_newSlot() {
    if (ieee154e_vars.isSync==FALSE) {
       radio_setTimerPeriod(ieee154e_vars.syncSlotLength);
       ieee154e_vars.syncSlotLength = TsSlotDuration;
-      debugpins_slot_set();
-      debugpins_slot_clr();
       if (idmanager_getIsDAGroot()==TRUE) {
          changeIsSync(TRUE);
          incrementAsnOffset();
@@ -1535,7 +1533,7 @@ port_INLINE void incrementAsnOffset() {
    }
    
    // increment the offsets
-   ieee154e_vars.slotOffset  = (ieee154e_vars.slotOffset+1)%SLOTFRAME_LENGTH;
+   ieee154e_vars.slotOffset    = (ieee154e_vars.slotOffset+1)%SLOTFRAME_LENGTH;
    ieee154e_vars.ebAsnOffset   = (ieee154e_vars.ebAsnOffset+1)%EB_NUMCHANS;
    ieee154e_vars.dataAsnOffset = (ieee154e_vars.dataAsnOffset+1)%16;
 }
@@ -1744,7 +1742,7 @@ port_INLINE uint8_t calculateFrequency(uint8_t channelOffset) {
             return 11 + ieee154e_vars.chTemplate[(ieee154e_vars.dataAsnOffset+channelOffset)%16];
         }
     } else {
-        return 11+ieee154e_vars.chTemplateEB[(ieee154e_vars.ebAsnOffset+channelOffset)%EB_NUMCHANS];
+        return 11 + ieee154e_vars.chTemplateEB[(ieee154e_vars.ebAsnOffset+channelOffset)%EB_NUMCHANS];
     }
 }
 

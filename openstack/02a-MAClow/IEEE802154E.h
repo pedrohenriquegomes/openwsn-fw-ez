@@ -23,7 +23,7 @@ static const uint8_t chTemplate_eb[] = {
    0,4,9,15                            // channels to send EBs on (-11, i.e. 0=channel 11) (0,4,9,15)==(11,15,20,26)
 };
 #define EB_NUMCHANS                 4  // number of channels EBs are sent on
-#define EB_SLOWHOPPING_PERIOD    1000  // how often a node changes the channel it listens on for EBs, in slots (1000=4610ms)
+#define EB_SLOWHOPPING_PERIOD     500  // how often a node changes the channel it listens on for EBs, in slots (500=7500ms)
 //=========================== define ==========================================
 
 #define SHORTTYPE_UNDEFINED       0xff
@@ -51,7 +51,6 @@ static const uint8_t chTemplate_eb[] = {
 #define EB_PERIOD_TIMER   2000 // every 2 seconds increase the EB period by a certain amount
 #define EB_PERIOD_AMOUNT     2 // increase by 1 (multiples of 100 ms)
 #define EB_PERIOD_MAX       20 // max EB interval will be 10 (multiples of 100 ms)
-#define EB_JUMP_COUNTER      2 // every 4 seconds jump to another channel
 
 //15.4e information elements related
 #define IEEE802154E_PAYLOAD_DESC_LEN_SHIFT                 0x04
