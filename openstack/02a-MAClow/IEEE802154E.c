@@ -16,9 +16,9 @@
 #include "sixtop.h"
 #include "adaptive_sync.h"
 #include "processIE.h"
-#include "light.h"
 #include "sensors.h"
 #include "topology.h"
+#include "openapps.h" 
 
 //=========================== variables =======================================
 
@@ -108,7 +108,7 @@ void ieee154e_init() {
    memset(&ieee154e_vars,0,sizeof(ieee154e_vars_t));
    memset(&ieee154e_dbg,0,sizeof(ieee154e_dbg_t));
    
-   ieee154e_vars.singleChannel     = 0;
+   ieee154e_vars.singleChannel     = SYNCHRONIZING_CHANNEL;
    ieee154e_vars.nextChannelEB     = SYNCHRONIZING_CHANNEL - 11;
    
    ieee154e_vars.isSecurityEnabled = FALSE;
@@ -1587,6 +1587,10 @@ port_INLINE void ieee154e_syncSlotOffset() {
    slotOffset = slotOffset % SLOTFRAME_LENGTH;
    
    ieee154e_vars.slotOffset       = (slotOffset_t) slotOffset;
+}
+
+void ieee154e_setIsAckEnabled(bool isEnabled){
+    ieee154e_vars.isAckEnabled = isEnabled;
 }
 
 void ieee154e_setSingleChannel(uint8_t channel){

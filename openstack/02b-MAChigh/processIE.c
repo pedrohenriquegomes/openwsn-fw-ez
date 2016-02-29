@@ -10,7 +10,6 @@
 #include "schedule.h"
 #include "scheduler.h"
 #include "packetfunctions.h"
-#include "light.h"
 
 //=========================== variables =======================================
 

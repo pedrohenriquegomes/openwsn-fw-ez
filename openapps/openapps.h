@@ -1,6 +1,7 @@
-
 #ifndef __OPENAPPS_H
 #define __OPENAPPS_H
+
+#include "uinject.h" 
 
 //=========================== define ==========================================
 

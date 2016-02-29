@@ -4,8 +4,6 @@
 #include "openqueue.h"
 #include "neighbors.h"
 #include "IEEE802154E.h"
-//#include "iphc.h"
-//#include "otf.h"
 #include "packetfunctions.h"
 #include "openrandom.h"
 #include "scheduler.h"
@@ -16,7 +14,7 @@
 #include "IEEE802154.h"
 #include "idmanager.h"
 #include "schedule.h"
-#include "light.h"
+#include "openapps.h"
 
 //=========================== variables =======================================
 
@@ -81,7 +79,6 @@ port_INLINE void sixtop_sendEB(void) {
    ((eb_ht*)(eb->payload))->type            = LONGTYPE_BEACON;
    ((eb_ht*)(eb->payload))->src             = idmanager_getMyShortID();
    ((eb_ht*)(eb->payload))->ebrank          = (uint8_t)neighbors_getMyDAGrank();
-   ((eb_ht*)(eb->payload))->light_info      = light_get_light_info(0);
    
    // remember where to write the ASN to
    eb->l2_ASNpayload                        = (uint8_t*)(&((eb_ht*)(eb->payload))->asn0);
@@ -125,10 +122,10 @@ void task_sixtopNotifSendDone(void) {
          
          break;
   
-      case COMPONENT_LIGHT:
+      case COMPONENT_UINJECT:
          // this is a data packet
          
-         light_sendDone(msg,msg->l2_sendDoneError);
+         uinject_sendDone(msg,msg->l2_sendDoneError);
          break;
          
       default:
@@ -156,7 +153,7 @@ void task_sixtopNotifReceive(void) {
    // take ownership
    msg->owner = COMPONENT_SIXTOP;
    
-   // parse as if it's an EB (light_ht and eb_ht) start with the same bytes
+   // parse as if it's an EB (all packets start with the same bytes)
    eb = (eb_ht*)msg->payload;
    
    // update neighbor statistics
@@ -170,10 +167,9 @@ void task_sixtopNotifReceive(void) {
    switch (*((uint16_t*)(msg->payload))) {
       case LONGTYPE_BEACON:
          neighbors_indicateRxEB(msg);
-         light_receive_beacon(msg);
          break;
       case LONGTYPE_DATA:
-        light_receive_data(msg);
+        uinject_receive(msg);
         break;
       default:
          // free the packet's RAM memory

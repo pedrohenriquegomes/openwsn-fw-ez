@@ -25,7 +25,7 @@ if not "%1" == "" goto debugFile
 
 @echo on 
 
-"C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.2\common\bin\cspybat" -f "C:\Users\Pedro\Dev\openwsn-ewsn\openwsn-fw\projects\OpenMote-CC2538\03oos_openwsn\settings\03oos_openwsn.Debug.general.xcl" --backend -f "C:\Users\Pedro\Dev\openwsn-ewsn\openwsn-fw\projects\OpenMote-CC2538\03oos_openwsn\settings\03oos_openwsn.Debug.driver.xcl" 
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.2\common\bin\cspybat" -f "Z:\Data\USC\4_Dev\openwsn-ez\openwsn-fw\projects\OpenMote-CC2538\03oos_openwsn\settings\03oos_openwsn.Debug.general.xcl" --backend -f "Z:\Data\USC\4_Dev\openwsn-ez\openwsn-fw\projects\OpenMote-CC2538\03oos_openwsn\settings\03oos_openwsn.Debug.driver.xcl" 
 
 @echo off 
 goto end 
@@ -34,7 +34,7 @@ goto end
 
 @echo on 
 
-"C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.2\common\bin\cspybat" -f "C:\Users\Pedro\Dev\openwsn-ewsn\openwsn-fw\projects\OpenMote-CC2538\03oos_openwsn\settings\03oos_openwsn.Debug.general.xcl" "--debug_file=%1" --backend -f "C:\Users\Pedro\Dev\openwsn-ewsn\openwsn-fw\projects\OpenMote-CC2538\03oos_openwsn\settings\03oos_openwsn.Debug.driver.xcl" 
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.2\common\bin\cspybat" -f "Z:\Data\USC\4_Dev\openwsn-ez\openwsn-fw\projects\OpenMote-CC2538\03oos_openwsn\settings\03oos_openwsn.Debug.general.xcl" "--debug_file=%1" --backend -f "Z:\Data\USC\4_Dev\openwsn-ez\openwsn-fw\projects\OpenMote-CC2538\03oos_openwsn\settings\03oos_openwsn.Debug.driver.xcl" 
 
 @echo off 
 :end

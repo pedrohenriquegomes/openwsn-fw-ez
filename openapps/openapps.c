@@ -5,7 +5,7 @@
 */
 
 #include "opendefs.h"
-#include "light.h"
+#include "uinject.h"
 
 //=========================== variables =======================================
 
@@ -16,5 +16,5 @@
 //=========================== private =========================================
 
 void openapps_init(void) {
-   light_init();
+   uinject_init();
 }

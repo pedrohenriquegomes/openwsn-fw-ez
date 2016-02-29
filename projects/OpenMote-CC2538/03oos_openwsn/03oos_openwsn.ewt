@@ -2487,12 +2487,12 @@
   <group>
     <name>openapps</name>
     <group>
-      <name>light</name>
+      <name>uinject</name>
       <file>
-        <name>$PROJ_DIR$\..\..\..\openapps\light\light.c</name>
+        <name>$PROJ_DIR$\..\..\..\openapps\uinject\uinject.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\openapps\light\light.h</name>
+        <name>$PROJ_DIR$\..\..\..\openapps\uinject\uinject.h</name>
       </file>
     </group>
     <file>

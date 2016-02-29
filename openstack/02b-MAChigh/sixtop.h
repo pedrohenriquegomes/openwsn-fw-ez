@@ -56,7 +56,6 @@ typedef struct {                                 // always written big endian, i
    uint8_t   asn1;
    uint8_t   asn2;
    uint8_t   asn3;
-   uint8_t   light_info;
 } eb_ht;
 END_PACK
 
