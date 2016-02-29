@@ -46,13 +46,13 @@ void debugpins_radio_toggle(void);
 void debugpins_radio_clr(void);
 void debugpins_radio_set(void);
 
-void debugpins_light_toggle(void);
-void debugpins_light_clr(void);
-void debugpins_light_set(void);
+void debugpins_app1_toggle(void);
+void debugpins_app1_clr(void);
+void debugpins_app1_set(void);
 
-void debugpins_user_toggle(void);
-void debugpins_user_clr(void);
-void debugpins_user_set(void);
+void debugpins_app2_toggle(void);
+void debugpins_app2_clr(void);
+void debugpins_app2_set(void);
 
 /**
 \}

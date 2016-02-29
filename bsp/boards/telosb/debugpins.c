@@ -22,138 +22,96 @@ void debugpins_init() {
    P2DIR |=  0x40;      // task  [P2.6]
    P6DIR |=  0x01;      // isr   [P6.0]
    P6DIR |=  0x02;      // radio [P6.1] 
-   P2DIR |=  0x08;      // light [P2.3] 
-   P6DIR |=  0x08;      // user  [P6.3] 
+   P2DIR |=  0x08;      // app1 [P2.3] 
+   P6DIR |=  0x08;      // app2  [P6.3] 
 }
 
 // P6.6
 void debugpins_frame_toggle() {
-#ifdef ENABLE_DEBUGPINS
    P6OUT ^=  0x40;
-#endif
 }
 void debugpins_frame_clr() {
-#ifdef ENABLE_DEBUGPINS
    P6OUT &= ~0x40;
-#endif
 }
 void debugpins_frame_set() {
-#ifdef ENABLE_DEBUGPINS
    P6OUT |=  0x40;
-#endif
 }
 
 // P6.7
 void debugpins_slot_toggle() {
-#ifdef ENABLE_DEBUGPINS
    P6OUT ^=  0x80;
-#endif
 }
 void debugpins_slot_clr() {
-#ifdef ENABLE_DEBUGPINS
    P6OUT &= ~0x80;
-#endif
 }
 void debugpins_slot_set() {
-#ifdef ENABLE_DEBUGPINS
    P6OUT |=  0x80;
-#endif
 }
 
 // P6.2
 void debugpins_fsm_toggle() {
-#ifdef ENABLE_DEBUGPINS
   P6OUT ^=  0x04;
-#endif
 }
 void debugpins_fsm_clr() {
-#ifdef ENABLE_DEBUGPINS
   P6OUT &= ~0x04;
-#endif
 }
 void debugpins_fsm_set() {
-#ifdef ENABLE_DEBUGPINS
   P6OUT |=  0x04;
-#endif
 }
 
 // P2.6
 void debugpins_task_toggle() {
-#ifdef ENABLE_DEBUGPINS
   P2OUT ^=  0x40;
-#endif
 }
 void debugpins_task_clr() {
-#ifdef ENABLE_DEBUGPINS
    P2OUT &= ~0x40;
-#endif
 }
 void debugpins_task_set() {
-#ifdef ENABLE_DEBUGPINS
    P2OUT |=  0x40;
-#endif
 }
 
 // P6.0
 void debugpins_isr_toggle() {
-#ifdef ENABLE_DEBUGPINS
   P6OUT ^=  0x01;
-#endif
 }
 void debugpins_isr_clr() {
-#ifdef ENABLE_DEBUGPINS
   P6OUT &= ~0x01;
-#endif
 }
 void debugpins_isr_set() {
-#ifdef ENABLE_DEBUGPINS
    P6OUT |=  0x01;
-#endif
 }
 
 // P6.1
 void debugpins_radio_toggle() {
-#ifdef ENABLE_DEBUGPINS
    P6OUT ^=  0x02;
-#endif
 }
 void debugpins_radio_clr() {
-#ifdef ENABLE_DEBUGPINS
   P6OUT &= ~0x02;
-#endif
 }
 void debugpins_radio_set() {
-#ifdef ENABLE_DEBUGPINS
   P6OUT |=  0x02;
-#endif
 }
 
 // P2.3
-void debugpins_light_toggle() {
+void debugpins_app1_toggle() {
   P2OUT ^=  0x08;
 }
-void debugpins_light_clr() {
+void debugpins_app1_clr() {
   P2OUT &= ~0x08;
 }
-void debugpins_light_set() {
+void debugpins_app1_set() {
   P2OUT |=  0x08;
 }
 
 // P6.3
-void debugpins_user_toggle() {
-#ifdef ENABLE_DEBUGPINS
+void debugpins_app2_toggle() {
   P6OUT ^=  0x08;
-#endif
 }
-void debugpins_user_clr() {
-#ifdef ENABLE_DEBUGPINS
+void debugpins_app2_clr() {
   P6OUT &= ~0x08;
-#endif
 }
-void debugpins_user_set() {
-#ifdef ENABLE_DEBUGPINS
+void debugpins_app2_set() {
   P6OUT |=  0x08;
-#endif
 }
 
 //=========================== private =========================================
