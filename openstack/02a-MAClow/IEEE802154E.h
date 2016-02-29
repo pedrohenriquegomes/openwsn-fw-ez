@@ -27,6 +27,12 @@ static const uint8_t chTemplate_eb[] = {
 #define EB_SLOWHOPPING_PERIOD    1000  // how often a node changes the channel it listens on for EBs, in slots (1000=4610ms)
 //=========================== define ==========================================
 
+#define SHORTTYPE_UNDEFINED       0xff
+#define SHORTTYPE_BEACON          0xb0
+#define SHORTTYPE_DATA            0xd0
+#define SHORTTYPE_ACK             0xa0  
+
+#define LONGTYPE_UNDEFINED        0xffff
 #define LONGTYPE_BEACON           0xb0b0
 #define LONGTYPE_DATA             0xd0d0
 #define LONGTYPE_ACK              0xa0a0  

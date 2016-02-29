@@ -2,7 +2,6 @@
 #include "IEEE802154E.h"
 #include "radio.h"
 #include "radiotimer.h"
-#include "IEEE802154.h"
 #include "openqueue.h"
 #include "idmanager.h"
 #include "openserial.h"
@@ -1403,7 +1402,7 @@ port_INLINE void activity_ri6() {
    ieee154e_vars.timeCorrection = (PORT_SIGNED_INT_WIDTH)((PORT_SIGNED_INT_WIDTH)TsTxOffset-(PORT_SIGNED_INT_WIDTH)ieee154e_vars.syncCapturedTime);
    
    // prepend the IEEE802.15.4 header to the ACK
-   ieee154e_vars.ackToSend->l2_frameType = IEEE154_TYPE_ACK;
+   ieee154e_vars.ackToSend->l2_frameType = SHORTTYPE_ACK;
    
    // fill in ACK
    ack_ht *ack = (ack_ht *)(ieee154e_vars.ackToSend->payload);

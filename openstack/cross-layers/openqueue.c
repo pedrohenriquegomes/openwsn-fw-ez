@@ -232,7 +232,7 @@ void openqueue_reset_entry(OpenQueueEntry_t* entry) {
    entry->l3_sourceAdd.type            = ADDR_NONE;
    //l2
    entry->l2_nextORpreviousHop.type    = ADDR_NONE;
-   entry->l2_frameType                 = IEEE154_TYPE_UNDEFINED;
+   entry->l2_frameType                 = SHORTTYPE_UNDEFINED;
    entry->l2_retriesLeft               = 0;
    entry->l2_IEListPresent             = 0;
    entry->l2_payloadIEpresent          = 0;

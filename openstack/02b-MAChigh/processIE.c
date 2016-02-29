@@ -3,7 +3,6 @@
 #include "sixtop.h"
 #include "idmanager.h"
 #include "openserial.h"
-#include "IEEE802154.h"
 #include "openqueue.h"
 #include "neighbors.h"
 #include "IEEE802154E.h"

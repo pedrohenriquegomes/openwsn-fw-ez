@@ -11,7 +11,6 @@
 #include "debugpins.h"
 #include "leds.h"
 #include "processIE.h"
-#include "IEEE802154.h"
 #include "idmanager.h"
 #include "schedule.h"
 #include "openapps.h"
@@ -33,7 +32,7 @@ owerror_t sixtop_send(OpenQueueEntry_t *msg) {
    
    // set metadata
    msg->owner           = COMPONENT_SIXTOP;
-   msg->l2_frameType    = IEEE154_TYPE_DATA;
+   msg->l2_frameType    = SHORTTYPE_DATA;
    msg->l2_rankPresent  = FALSE;
    
    return sixtop_send_internal(msg);
@@ -84,7 +83,7 @@ port_INLINE void sixtop_sendEB(void) {
    eb->l2_ASNpayload                        = (uint8_t*)(&((eb_ht*)(eb->payload))->asn0);
    
    // some l2 information about this packet
-   eb->l2_frameType                         = IEEE154_TYPE_BEACON;
+   eb->l2_frameType                         = SHORTTYPE_BEACON;
    eb->l2_nextORpreviousHop.type            = ADDR_16B;
    eb->l2_nextORpreviousHop.addr_16b[0]     = 0xff;
    eb->l2_nextORpreviousHop.addr_16b[1]     = 0xff;

@@ -169,7 +169,6 @@ enum {
    COMPONENT_UINJECT                   = 0x24,
    COMPONENT_RRT                       = 0x25,
    COMPONENT_SECURITY                  = 0x26,
-   COMPONENT_LIGHT                     = 0x27,
 };
 
 /**
@@ -315,14 +314,10 @@ typedef struct {
    uint8_t       l2_securityLevel;               //the security level specified for the current frame
    uint8_t       l2_keyIdMode;                   //the key Identifier mode specified for the current frame
    uint8_t       l2_keyIndex;                    //the key Index specified for the current frame
-//   open_addr_t   l2_keySource;                   //the key Source specified for the current frame
-//   uint8_t       l2_authenticationLength;        //the length of the authentication field
-//   uint8_t       commandFrameIdentifier;         //used in case of Command Frames
-   bool           l2_rankPresent;
-   uint16_t       l2_rank;
-   uint16_t       l2_floodingCounter;
-   bool           l2_floodingState;
-//   uint8_t*      l2_FrameCounter;                //pointer to the FrameCounter in the MAC header
+   bool          l2_rankPresent;
+   uint16_t      l2_rank;
+   uint16_t      l2_floodingCounter;
+   bool          l2_floodingState;
    //l1 (drivers)
    uint8_t       l1_txPower;                     // power for packet to Tx at
    int8_t        l1_rssi;                        // RSSI of received packet
