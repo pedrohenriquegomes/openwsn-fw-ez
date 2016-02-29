@@ -14,7 +14,6 @@
 #include "debugpins.h"
 #include "sixtop.h"
 #include "adaptive_sync.h"
-#include "processIE.h"
 #include "sensors.h"
 #include "topology.h"
 #include "openapps.h" 
