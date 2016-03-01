@@ -19,9 +19,9 @@
 #define SWITCHSTABILITYTHRESHOLD  3
 #define DEFAULTLINKCOST           15
 
-#define MAXDAGRANK                0xff
+#define MAXDAGRANK                0xffff
 #define DEFAULTDAGRANK            MAXDAGRANK
-#define MINHOPRANKINCREASE        1
+#define MINHOPRANKINCREASE        10
 
 //=========================== typedef =========================================
 
@@ -36,6 +36,7 @@ typedef struct {
    int8_t          rssi;
    uint8_t         numRx;
    uint8_t         numTx;
+   uint8_t         numTxACK;
    uint8_t         numWraps; //number of times the tx counter wraps. can be removed if memory is a restriction. also check openvisualizer then.
    asn_t           asn;
 } neighborRow_t;
@@ -84,6 +85,12 @@ void          neighbors_indicateRx(
    uint16_t             src,
    int8_t               rssi,
    asn_t*               asnTs
+);
+void          neighbors_indicateTx(
+   uint16_t             dest,
+   uint8_t              numTxAttempts,
+   bool                 was_finally_acked,
+   asn_t*               asnTimestamp
 );
 void          neighbors_indicateRxEB(
    OpenQueueEntry_t*    msg

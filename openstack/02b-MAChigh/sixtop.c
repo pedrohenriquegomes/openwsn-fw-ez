@@ -94,7 +94,8 @@ port_INLINE void sixtop_sendEB(void) {
 }
 
 void task_sixtopNotifSendDone(void) {
-   OpenQueueEntry_t* msg;
+   OpenQueueEntry_t     *msg;
+   eb_ht                 *eb_payload;
    
    // get recently-sent packet from openqueue
    msg = openqueue_sixtopGetSentPacket();
@@ -106,6 +107,26 @@ void task_sixtopNotifSendDone(void) {
    
    // take ownership
    msg->owner = COMPONENT_SIXTOP;
+   
+   // parse the payload
+   eb_payload = (eb_ht *)(msg->payload);
+   
+   // update neighbor statistics
+   if (msg->l2_sendDoneError==E_SUCCESS) {
+      neighbors_indicateTx(
+         eb_payload->l2_dst,
+         msg->l2_numTxAttempts,
+         TRUE,
+         &msg->l2_asn
+      );
+   } else {
+      neighbors_indicateTx(
+         eb_payload->l2_dst,
+         msg->l2_numTxAttempts,
+         FALSE,
+         &msg->l2_asn
+      );
+   }
    
    // send the packet to where it belongs
    switch (msg->creator) {
