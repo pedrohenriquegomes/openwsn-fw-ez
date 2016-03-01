@@ -1139,7 +1139,7 @@ port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
                                    &ieee154e_vars.ackReceived->l1_crc);
       
       // break if wrong length
-      if (ieee154e_vars.dataReceived->length!=sizeof(ack_ht)+2) {
+      if (ieee154e_vars.ackReceived->length!=sizeof(ack_ht)+2) {
          break;
       }
       
