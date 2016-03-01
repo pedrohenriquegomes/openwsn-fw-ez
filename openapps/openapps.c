@@ -16,5 +16,5 @@
 //=========================== private =========================================
 
 void openapps_init(void) {
-   uinject_init();
+//   uinject_init();
 }

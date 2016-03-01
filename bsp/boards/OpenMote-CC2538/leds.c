@@ -121,8 +121,8 @@ void leds_error_blink() {
    // turn all LEDs off
    bspLedClear(BSP_LED_ALL);
      
-   // blink error LED for ~10s
-   for (i=0;i<80;i++) {
+   // blink error LED for ~5s
+   for (i=0;i<40;i++) {
       bspLedToggle(BSP_LED_1);
       for (delay=0xffff;delay>0;delay--);
       for (delay=0xffff;delay>0;delay--);

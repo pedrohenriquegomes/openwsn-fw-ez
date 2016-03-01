@@ -40,8 +40,6 @@ void uinject_sendDone(OpenQueueEntry_t* msg, owerror_t error) {
 
 void uinject_receive(OpenQueueEntry_t* pkt) {
    
-   openqueue_freePacketBuffer(pkt);
-   
    openserial_printError(
       COMPONENT_UINJECT,
       ERR_RCVD_ECHO_REPLY,

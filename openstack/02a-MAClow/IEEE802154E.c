@@ -591,19 +591,22 @@ port_INLINE void activity_synchronize_endOfFrame(PORT_RADIOTIMER_WIDTH capturedT
       if (ieee154e_vars.dataReceived->l1_crc==FALSE) {
          break;
       }
+
+      // parse eb
+      eb = (eb_ht*)(ieee154e_vars.dataReceived->payload);
       
       // break if not beacon
-      if (((eb_ht*)(ieee154e_vars.dataReceived->payload))->type != LONGTYPE_BEACON) {
+      if (eb->type != LONGTYPE_BEACON) {
          break;
       }
       
       // break if not new syncnum
-      if (((eb_ht*)(ieee154e_vars.dataReceived->payload))->syncnum==ieee154e_vars.syncnum) {
+      if (eb->syncnum==ieee154e_vars.syncnum) {
          break;
       }
       
       // break if from node outside of allowed topology
-      if (topology_isAcceptablePacket(((eb_ht*)(ieee154e_vars.dataReceived->payload))->src)==FALSE) {
+      if (topology_isAcceptablePacket(eb->src)==FALSE) {
          break;
       }
       
@@ -620,9 +623,6 @@ port_INLINE void activity_synchronize_endOfFrame(PORT_RADIOTIMER_WIDTH capturedT
       
       // turn off the radio
       radio_rfOff();
-      
-      // parse eb
-      eb = (eb_ht*)(ieee154e_vars.dataReceived->payload);
       
       // store syncnum
       ieee154e_vars.syncnum = eb->syncnum;
@@ -760,34 +760,27 @@ port_INLINE void activity_ti1ORri1() {
       endSlot();
       return;
    }
+
+   // stop using serial
+   openserial_stop();
+   // assuming that there is nothing to send
+   ieee154e_vars.dataToSend = NULL;
    
    // check the schedule to see what type of slot this is
-   cellType = schedule_getType();
+   cellType = schedule_getType();   
    switch (cellType) {
       case CELLTYPE_EB:
          // have 6top create an EB packet every AVERAGEDEGREE EB slots, on average
          if (openrandom_get16b()%AVERAGEDEGREE==0) {
             sixtop_sendEB();
          }
-      case CELLTYPE_TXRX:
-         // stop using serial
-         openserial_stop();
-         // assuming that there is nothing to send
-         ieee154e_vars.dataToSend = NULL;
-         // check whether there is something to send
-         if (cellType==CELLTYPE_EB) {
-            // CELLTYPE_EB
-            ieee154e_vars.dataToSend = openqueue_macGetEBPacket();
-         } else {
-            // CELLTYPE_TXRX
-            if (openrandom_get16b()%AVERAGEDEGREE==0) {
-               ieee154e_vars.dataToSend = openqueue_macGetDataPacket();
-            }
-         }
+         
+         // if there is a EB to send
+         ieee154e_vars.dataToSend = openqueue_macGetEBPacket();
          
          if (ieee154e_vars.dataToSend==NULL) {
             // listen
-            
+           
             // change state
             changeState(S_RXDATAOFFSET);
             // arm rt1
@@ -801,42 +794,69 @@ port_INLINE void activity_ti1ORri1() {
             // change owner
             ieee154e_vars.dataToSend->owner = COMPONENT_IEEE802154E;
             
-            // both data and eb's start with same fields
+            // populate the EB fields
             eb = (eb_ht*)(ieee154e_vars.dataToSend->payload);
             
             // fill in syncnum
             eb->syncnum = ieee154e_vars.syncnum;
             
-            // fill in ASN (if I'm sending an EB)
-            if (cellType==CELLTYPE_EB) {
-              // I will be sending an EB
-              
-              // increment syncnum
-              if (idmanager_getIsDAGroot()==TRUE) {
-                 ieee154e_vars.syncnum++;
-              }
-              
-              // fill in the ASN field
-              eb->asn0 = (ieee154e_vars.asn.bytes0and1     & 0xff);
-              eb->asn1 = (ieee154e_vars.asn.bytes0and1/256 & 0xff);
-              eb->asn2 = (ieee154e_vars.asn.bytes2and3     & 0xff);
-              eb->asn3 = (ieee154e_vars.asn.bytes2and3/256 & 0xff);
+            // increment syncnum
+            if (idmanager_getIsDAGroot()==TRUE) {
+               ieee154e_vars.syncnum++;
             }
+              
+            // fill in the ASN field
+            eb->asn0 = (ieee154e_vars.asn.bytes0and1     & 0xff);
+            eb->asn1 = (ieee154e_vars.asn.bytes0and1/256 & 0xff);
+            eb->asn2 = (ieee154e_vars.asn.bytes2and3     & 0xff);
+            eb->asn3 = (ieee154e_vars.asn.bytes2and3/256 & 0xff);
+            
             // record that I attempt to transmit this packet
             ieee154e_vars.dataToSend->l2_numTxAttempts++;
             // arm tt1
             radiotimer_schedule(DURATION_tt1);
          }
          break;
+
       case CELLTYPE_TX:
-	     // abort
-         endSlot();
-		 break;
+         // check if we have a packet to transmit
+         ieee154e_vars.dataToSend = openqueue_macGetDataPacket();
+            
+      case CELLTYPE_TXRX:
+         // try to transmit every AVERAGEDEGREE
+         if (openrandom_get16b()%AVERAGEDEGREE==0) {
+            ieee154e_vars.dataToSend = openqueue_macGetDataPacket();
+         }
+         
+         if (ieee154e_vars.dataToSend != NULL) {
+            // transmit
+            
+            // change state
+            changeState(S_TXDATAOFFSET);
+            
+            // change owner
+            ieee154e_vars.dataToSend->owner = COMPONENT_IEEE802154E;
+            
+            // record that I attempt to transmit this packet
+            ieee154e_vars.dataToSend->l2_numTxAttempts++;
+         
+            // arm tt1
+            radiotimer_schedule(DURATION_tt1);
+            
+            break;
+         }
+         
       case CELLTYPE_RX:
-	     // abort
-         endSlot();
-	     break;
-	  default:
+         // listen
+      
+         // change state
+         changeState(S_RXDATAOFFSET);
+         
+         // arm rt1
+         radiotimer_schedule(DURATION_rt1);         
+         
+         break;
+      default:
          // stop using serial
          openserial_stop();
          // log the error
@@ -940,6 +960,7 @@ port_INLINE void activity_tie3() {
 
 port_INLINE void activity_ti5(PORT_RADIOTIMER_WIDTH capturedTime) {
    bool listenForAck;
+   eb_ht* eb;
    
    // change state
    changeState(S_RXACKOFFSET);
@@ -955,8 +976,10 @@ port_INLINE void activity_ti5(PORT_RADIOTIMER_WIDTH capturedTime) {
    // record the captured time
    ieee154e_vars.lastCapturedTime = capturedTime;
    
+   eb = (eb_ht*)(ieee154e_vars.dataToSend->payload);
+   
    // decides whether to listen for an ACK
-   if (isPktBroadcast(ieee154e_vars.dataToSend)==TRUE) {
+   if (eb->dst == 0xffff) {
       listenForAck = FALSE;
    } else {
       listenForAck = TRUE;
@@ -1313,11 +1336,11 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
          break;
       }
       
-      // parse as if it's an EB (data_ht and eb_ht) start with the same bytes
+      // parse as if it's an EB (all packets start with type followed by src)
       eb = (eb_ht*)ieee154e_vars.dataReceived->payload;
       
       // break if wrong type
-      if ( eb->type!=LONGTYPE_BEACON && eb->type!=LONGTYPE_DATA) {
+      if (eb->type!=LONGTYPE_BEACON && eb->type!=LONGTYPE_DATA) {
          break;
       }
       
@@ -1329,16 +1352,17 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
       // record the captured time
       ieee154e_vars.lastCapturedTime = capturedTime;
             
-      // check if ack requested
-      if(isPktBroadcast(ieee154e_vars.dataReceived) == FALSE) {
+      // ack requested
+      if(eb->dst != 0xffff) {
          // arm rt5
          radiotimer_schedule(DURATION_rt5);
       } else {
          // synchronize to the received packet iif I'm not a DAGroot and this is my preferred parent
          if (
-            idmanager_getIsDAGroot()==FALSE &&
+            idmanager_getIsDAGroot() == FALSE &&
             neighbors_isPreferredParent(eb->src) &&
-            eb->syncnum!=ieee154e_vars.syncnum
+            eb->type == LONGTYPE_BEACON && 
+            eb->syncnum != ieee154e_vars.syncnum
          ) {
             synchronizePacket(ieee154e_vars.syncCapturedTime);
             ieee154e_vars.syncnum = eb->syncnum;
@@ -1884,22 +1908,8 @@ void endSlot() {
       ieee154e_vars.ackReceived = NULL;
    }
    
-   
    // change state
    changeState(S_SLEEP);
-}
-
-bool isPktBroadcast(OpenQueueEntry_t* pkt){
-   // parse as a ack_ht
-   ack_ht *payload = (ack_ht *)pkt->payload;
-  
-   bool retVal = TRUE;
-  
-   if (payload->type != LONGTYPE_BEACON && payload->dst != 0xffff){
-      retVal = FALSE;  
-   }
-      
-   return retVal;
 }
 
 bool ieee154e_isSynch(){

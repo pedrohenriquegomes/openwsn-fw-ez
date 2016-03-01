@@ -75,6 +75,7 @@ port_INLINE void sixtop_sendEB(void) {
    packetfunctions_reserveHeaderSize(eb,sizeof(eb_ht));
    ((eb_ht*)(eb->payload))->type            = LONGTYPE_BEACON;
    ((eb_ht*)(eb->payload))->src             = idmanager_getMyShortID();
+   ((eb_ht*)(eb->payload))->dst             = 0xffff;
    ((eb_ht*)(eb->payload))->ebrank          = (uint8_t)neighbors_getMyDAGrank();
    
    // remember where to write the ASN to
@@ -150,7 +151,7 @@ void task_sixtopNotifReceive(void) {
    // take ownership
    msg->owner = COMPONENT_SIXTOP;
    
-   // parse as if it's an EB (all packets start with the same bytes)
+   // parse as if it's an EB (all packets start with type, src, dst)
    eb = (eb_ht*)msg->payload;
    
    // update neighbor statistics
@@ -161,25 +162,25 @@ void task_sixtopNotifReceive(void) {
    );
    
    // send the packet up the stack, if it qualifies
-   switch (*((uint16_t*)(msg->payload))) {
+   switch (eb->type) {
       case LONGTYPE_BEACON:
          neighbors_indicateRxEB(msg);
          break;
       case LONGTYPE_DATA:
-        uinject_receive(msg);
-        break;
+         uinject_receive(msg);
+         break;
       default:
-         // free the packet's RAM memory
-         openqueue_freePacketBuffer(msg);
          // log the error
          openserial_printError(
             COMPONENT_SIXTOP,
             ERR_MSG_UNKNOWN_TYPE,
-            (errorparameter_t)msg->l2_frameType,
+            (errorparameter_t)eb->type,
             (errorparameter_t)0
          );
          break;
    }
+   // free the packet's RAM memory
+   openqueue_freePacketBuffer(msg);
 }
 
 //======= debugging
@@ -229,8 +230,6 @@ owerror_t sixtop_send_internal(OpenQueueEntry_t* msg) {
    } else {
       msg->l2_retriesLeft = TXRETRIES + 1;
    }
-   // assign a number of retries
-   msg->l2_retriesLeft = 1;
    // this is a new packet which I never attempted to send
    msg->l2_numTxAttempts = 0;
    // transmit with the default TX power
