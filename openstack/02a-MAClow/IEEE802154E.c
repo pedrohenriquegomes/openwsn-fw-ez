@@ -1159,6 +1159,11 @@ port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
       if (ack->type != LONGTYPE_ACK) {
          break;
       }
+
+      // break if from node outside of allowable topology
+      if (topology_isAcceptablePacket(ack->src)==FALSE) {
+         break;
+      }
       
       // break if destination and source are not correct (we use ACK header since it is the same for data_ht)
       if (ack->dst != idmanager_getMyShortID() || 
