@@ -1399,6 +1399,7 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
 }
 
 port_INLINE void activity_ri6() {
+   ack_ht *ack;
    
    // change state
    changeState(S_TXACKPREPARE);
@@ -1431,11 +1432,11 @@ port_INLINE void activity_ri6() {
    ieee154e_vars.ackToSend->l2_frameType = SHORTTYPE_ACK;
    
    // fill in ACK
-   ack_ht *ack = (ack_ht *)(ieee154e_vars.ackToSend->payload);
    packetfunctions_reserveHeaderSize(ieee154e_vars.ackToSend,sizeof(ack_ht));
-   ack->type            = LONGTYPE_ACK;
-   ack->src             = idmanager_getMyShortID();
-   ack->dst             = ((eb_ht*)(ieee154e_vars.dataReceived->payload))->src;
+   ack          = (ack_ht *)(ieee154e_vars.ackToSend->payload);
+   ack->type    = LONGTYPE_ACK;
+   ack->src     = idmanager_getMyShortID();
+   ack->dst     = ((eb_ht*)(ieee154e_vars.dataReceived->payload))->src;
    
    // space for 2-byte CRC
    packetfunctions_reserveFooterSize(ieee154e_vars.ackToSend,2);
