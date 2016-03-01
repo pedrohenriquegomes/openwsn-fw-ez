@@ -128,6 +128,30 @@ bool neighbors_isPreferredParent(uint16_t shortID) {
    return returnVal;
 }
 
+//===== getters
+
+uint16_t      neighbors_getPreferredParent(void) {
+   uint8_t i;
+   uint16_t    returnVal;
+   
+   INTERRUPT_DECLARATION();
+   DISABLE_INTERRUPTS();
+   
+   // by default, broadcast
+   returnVal = 0xffff;
+   
+   // iterate through neighbor table
+   for (i=0;i<MAXNUMNEIGHBORS;i++) {
+      if (neighbors_vars.neighbors[i].parentPreference==MAXPREFERENCE) {
+         returnVal  = neighbors_vars.neighbors[i].shortID;
+         break;
+      }
+   }
+   
+   ENABLE_INTERRUPTS();
+   return returnVal;  
+}
+
 //===== updating neighbor information
 
 /**

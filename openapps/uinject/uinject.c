@@ -4,6 +4,7 @@
 #include "opentimers.h"
 #include "openserial.h"
 #include "packetfunctions.h"
+#include "neighbors.h"
 #include "scheduler.h"
 #include "IEEE802154E.h"
 #include "idmanager.h"
@@ -86,14 +87,19 @@ void uinject_task_cb() {
       return;
    }
    
-   pkt->owner                         = COMPONENT_UINJECT;
-   pkt->creator                       = COMPONENT_UINJECT;
+   pkt->owner                                   = COMPONENT_UINJECT;
+   pkt->creator                                 = COMPONENT_UINJECT;
+   pkt->l2_nextORpreviousHop.type               = ADDR_16B;
+   uint16_t nextHop = neighbors_getPreferredParent();
+   pkt->l2_nextORpreviousHop.addr_16b[0]        = (uint8_t)(nextHop&0xff);
+   pkt->l2_nextORpreviousHop.addr_16b[1]        = (uint8_t)(nextHop>>8);
    
    // fill payload
    packetfunctions_reserveHeaderSize(pkt,sizeof(uinject_ht));
    ((uinject_ht*)(pkt->payload))->type        = LONGTYPE_DATA;
    ((uinject_ht*)(pkt->payload))->src         = idmanager_getMyShortID();
    ((uinject_ht*)(pkt->payload))->dst         = SINK_ID;
+   ((uinject_ht*)(pkt->payload))->nextHop     = nextHop;
    ((uinject_ht*)(pkt->payload))->counter     = uinject_vars.counter++;
    
    if ((sixtop_send(pkt))==E_FAIL) {

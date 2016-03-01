@@ -77,6 +77,7 @@ uint8_t       neighbors_getNumNeighbors(void);
 // interrogators
 bool          neighbors_isStableNeighbor(uint16_t shortID);
 bool          neighbors_isPreferredParent(uint16_t shortID);
+uint16_t      neighbors_getPreferredParent(void);
 
 // updating neighbor information
 void          neighbors_indicateRx(

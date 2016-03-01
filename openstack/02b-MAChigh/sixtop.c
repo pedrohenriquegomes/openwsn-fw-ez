@@ -32,7 +32,6 @@ owerror_t sixtop_send(OpenQueueEntry_t *msg) {
    // set metadata
    msg->owner           = COMPONENT_SIXTOP;
    msg->l2_frameType    = SHORTTYPE_DATA;
-   msg->l2_rankPresent  = FALSE;
    
    return sixtop_send_internal(msg);
 }

@@ -18,8 +18,8 @@
 The superframe repears over time and can be arbitrarly long.
 */
 #define NUM_EB_SLOTS         1
-#define NUM_TXRX_SLOTS       45
-#define SLOTFRAME_LENGTH     53         // this should be ideally a prime number in order to spread EBs in all channels
+#define NUM_TXRX_SLOTS       5
+#define SLOTFRAME_LENGTH     13         // this should be ideally a prime number in order to spread EBs in all channels
 
 #define MAXACTIVESLOTS       (NUM_EB_SLOTS+NUM_TXRX_SLOTS)
 

@@ -314,7 +314,6 @@ typedef struct {
    uint8_t       l2_securityLevel;               //the security level specified for the current frame
    uint8_t       l2_keyIdMode;                   //the key Identifier mode specified for the current frame
    uint8_t       l2_keyIndex;                    //the key Index specified for the current frame
-   bool          l2_rankPresent;
    uint16_t      l2_rank;
    uint16_t      l2_floodingCounter;
    bool          l2_floodingState;

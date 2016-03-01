@@ -9,12 +9,10 @@ sources_c = [
     'openstack.c',
     #=== 02a-MAClow
     os.path.join('02a-MAClow','topology.c'),
-    os.path.join('02a-MAClow','IEEE802154.c'),
     os.path.join('02a-MAClow','IEEE802154E.c'),
     os.path.join('02a-MAClow','adaptive_sync.c'),
     #=== 02b-MAChigh
     os.path.join('02b-MAChigh','neighbors.c'),
-    os.path.join('02b-MAChigh','processIE.c'),
     os.path.join('02b-MAChigh','schedule.c'),
     os.path.join('02b-MAChigh','sixtop.c'),
     #=== cross-layers
@@ -27,12 +25,10 @@ sources_h = [
     'openstack.h',
     #=== 02a-MAClow
     os.path.join('02a-MAClow','topology.h'),
-    os.path.join('02a-MAClow','IEEE802154.h'),
     os.path.join('02a-MAClow','IEEE802154E.h'),
     os.path.join('02a-MAClow','adaptive_sync.h'),
     #=== 02b-MAChigh
     os.path.join('02b-MAChigh','neighbors.h'),
-    os.path.join('02b-MAChigh','processIE.h'),
     os.path.join('02b-MAChigh','schedule.h'),
     os.path.join('02b-MAChigh','sixtop.h'),
     #=== cross-layers
@@ -74,7 +70,7 @@ else:
             os.path.join('#','openstack','cross-layers'),
             # openapps
             # TODO: remove once cleaned-up?
-            os.path.join('#','openapps','light'),
+            os.path.join('#','openapps','uinject'),
         ],
     )
     

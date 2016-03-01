@@ -20,9 +20,10 @@ static const uint8_t chTemplate_default[] = {
 };
 
 static const uint8_t chTemplate_eb[] = {
-   0,4,9,15                            // channels to send EBs on (-11, i.e. 0=channel 11) (0,4,9,15)==(11,15,20,26)
+   //0,4,9,15                            // channels to send EBs on (-11, i.e. 0=channel 11) (0,4,9,15)==(11,15,20,26)
+  15
 };
-#define EB_NUMCHANS                 4  // number of channels EBs are sent on
+#define EB_NUMCHANS                 1  // number of channels EBs are sent on
 #define EB_SLOWHOPPING_PERIOD     500  // how often a node changes the channel it listens on for EBs, in slots (500=7500ms)
 //=========================== define ==========================================
 
@@ -36,7 +37,7 @@ static const uint8_t chTemplate_eb[] = {
 #define LONGTYPE_DATA             0xd0d0
 #define LONGTYPE_ACK              0xa0a0  
 
-#define SYNCHRONIZING_CHANNEL       25 // channel the mote listens on to synchronize
+#define SYNCHRONIZING_CHANNEL       26 // channel the mote listens on to synchronize
 #define TXRETRIES                    0 // number of MAC retries before declaring failed
 #define TX_POWER                    31 // 1=-25dBm, 31=0dBm (max value)
 #define RESYNCHRONIZATIONGUARD      60 // in 32kHz ticks. min distance to the end of the slot to successfully synchronize
