@@ -84,7 +84,7 @@ port_INLINE void sixtop_sendEB(void) {
    eb_payload->type            = LONGTYPE_BEACON;
    eb_payload->l2_src          = idmanager_getMyShortID();
    eb_payload->l2_dst          = BROADCAST_ID;
-   eb_payload->ebrank          = (uint8_t)neighbors_getMyDAGrank();
+   eb_payload->ebrank          = neighbors_getMyDAGrank();
    
    // remember where to write the ASN to
    eb->l2_ASNpayload                        = (uint8_t*)(&((eb_ht*)(eb->payload))->asn0);

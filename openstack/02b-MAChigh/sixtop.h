@@ -51,7 +51,7 @@ typedef struct {                                 // always written big endian, i
    uint16_t  l2_src;
    uint16_t  l2_dst;
    uint8_t   syncnum;
-   uint8_t   ebrank;
+   uint16_t  ebrank;
    uint8_t   asn0;
    uint8_t   asn1;
    uint8_t   asn2;
