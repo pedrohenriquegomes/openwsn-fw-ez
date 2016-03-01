@@ -48,8 +48,8 @@ typedef enum {
 BEGIN_PACK
 typedef struct {                                 // always written big endian, i.e. MSB in addr[0]
    uint16_t  type;
-   uint16_t  src;
-   uint16_t  dst;
+   uint16_t  l2_src;
+   uint16_t  l2_dst;
    uint8_t   syncnum;
    uint8_t   ebrank;
    uint8_t   asn0;
@@ -62,8 +62,8 @@ END_PACK
 BEGIN_PACK
 typedef struct {                                 // always written big endian, i.e. MSB in addr[0]
    uint16_t  type;
-   uint16_t  src;
-   uint16_t  dst;
+   uint16_t  l2_src;
+   uint16_t  l2_dst;
 } ack_ht;
 END_PACK
 

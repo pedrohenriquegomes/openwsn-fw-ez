@@ -27,11 +27,11 @@ void uinject_init() {
    memset(&uinject_vars,0,sizeof(uinject_vars_t));
    
    // start periodic timer
-   uinject_vars.timerId                    = opentimers_start(
-      UINJECT_PERIOD_MS,
-      TIMER_PERIODIC,TIME_MS,
-      uinject_timer_cb
-   );
+   uinject_vars.timerId = opentimers_start(
+                                UINJECT_PERIOD_MS,
+                                TIMER_PERIODIC,TIME_MS,
+                                uinject_timer_cb
+                          );
 }
 
 void uinject_sendDone(OpenQueueEntry_t* msg, owerror_t error) {
@@ -39,13 +39,54 @@ void uinject_sendDone(OpenQueueEntry_t* msg, owerror_t error) {
 }
 
 void uinject_receive(OpenQueueEntry_t* pkt) {
+   OpenQueueEntry_t    *fwd;
+   uinject_ht          *pkt_payload, *fwd_payload;
    
-   openserial_printError(
-      COMPONENT_UINJECT,
-      ERR_RCVD_ECHO_REPLY,
-      (errorparameter_t)0,
-      (errorparameter_t)0
-   );
+   // get the received packet payload
+   pkt_payload = (uinject_ht*)(pkt->payload);
+   
+   if (pkt_payload->l3_dst != idmanager_getMyShortID()) {
+       // need to forward the packet
+     
+      fwd = openqueue_getFreePacketBuffer(COMPONENT_UINJECT);
+      if (fwd==NULL) {
+         openserial_printError(COMPONENT_UINJECT, ERR_NO_FREE_PACKET_BUFFER,
+                              (errorparameter_t)0, (errorparameter_t)0);
+         return;
+      }
+      
+      fwd->owner                                   = COMPONENT_UINJECT;
+      fwd->creator                                 = COMPONENT_UINJECT;
+      fwd->l2_nextORpreviousHop.type               = ADDR_16B;
+      uint16_t nextHop                             = neighbors_getPreferredParent();
+      fwd->l2_nextORpreviousHop.addr_16b[0]        = (uint8_t)(nextHop&0xff);
+      fwd->l2_nextORpreviousHop.addr_16b[1]        = (uint8_t)(nextHop>>8);
+   
+      // fill fwd payload
+      packetfunctions_reserveHeaderSize(fwd, sizeof(uinject_ht));
+      fwd_payload           = (uinject_ht*)(fwd->payload);
+      fwd_payload->type     = LONGTYPE_DATA;
+      fwd_payload->l2_src   = idmanager_getMyShortID();
+      fwd_payload->l2_dst   = nextHop;
+      fwd_payload->l3_src   = pkt_payload->l3_src;
+      fwd_payload->l3_dst   = pkt_payload->l3_dst;
+      fwd_payload->counter  = pkt_payload->counter;
+      
+      openserial_printError(COMPONENT_UINJECT, ERR_UINJECT_FWD, 
+                            (errorparameter_t)0, (errorparameter_t)0);
+      
+      if ((sixtop_send(fwd))==E_FAIL) {
+         openqueue_freePacketBuffer(fwd);
+      }
+   }
+   else {
+      // just process the packet  
+      
+      openserial_printError(COMPONENT_UINJECT, ERR_UINJECT_RCV, 
+                        (errorparameter_t)0, (errorparameter_t)0);
+   }
+   
+   // pkt will be destroyed by sixtop
 }
 
 //=========================== private =========================================
@@ -61,6 +102,7 @@ void uinject_timer_cb(opentimer_id_t id){
 
 void uinject_task_cb() {
    OpenQueueEntry_t*    pkt;
+   uinject_ht*          payload;
    
    // don't run if not synch
    if (ieee154e_isSynch() == FALSE) return;
@@ -76,29 +118,27 @@ void uinject_task_cb() {
    // get a free packet buffer
    pkt = openqueue_getFreePacketBuffer(COMPONENT_UINJECT);
    if (pkt==NULL) {
-      openserial_printError(
-         COMPONENT_UINJECT,
-         ERR_NO_FREE_PACKET_BUFFER,
-         (errorparameter_t)0,
-         (errorparameter_t)0
-      );
+      openserial_printError(COMPONENT_UINJECT, ERR_NO_FREE_PACKET_BUFFER, 
+                            (errorparameter_t)0, (errorparameter_t)0);
       return;
    }
    
    pkt->owner                                   = COMPONENT_UINJECT;
    pkt->creator                                 = COMPONENT_UINJECT;
    pkt->l2_nextORpreviousHop.type               = ADDR_16B;
-   uint16_t nextHop = neighbors_getPreferredParent();
+   uint16_t nextHop                             = neighbors_getPreferredParent();
    pkt->l2_nextORpreviousHop.addr_16b[0]        = (uint8_t)(nextHop&0xff);
    pkt->l2_nextORpreviousHop.addr_16b[1]        = (uint8_t)(nextHop>>8);
    
    // fill payload
-   packetfunctions_reserveHeaderSize(pkt,sizeof(uinject_ht));
-   ((uinject_ht*)(pkt->payload))->type        = LONGTYPE_DATA;
-   ((uinject_ht*)(pkt->payload))->src         = idmanager_getMyShortID();
-   ((uinject_ht*)(pkt->payload))->dst         = SINK_ID;
-   ((uinject_ht*)(pkt->payload))->nextHop     = nextHop;
-   ((uinject_ht*)(pkt->payload))->counter     = uinject_vars.counter++;
+   packetfunctions_reserveHeaderSize(pkt ,sizeof(uinject_ht));
+   payload              = (uinject_ht*)(pkt->payload);
+   payload->type        = LONGTYPE_DATA;
+   payload->l2_src      = idmanager_getMyShortID();
+   payload->l2_dst      = nextHop;
+   payload->l3_src      = idmanager_getMyShortID();
+   payload->l3_dst      = SINK_ID;
+   payload->counter     = uinject_vars.counter++;
    
    if ((sixtop_send(pkt))==E_FAIL) {
       openqueue_freePacketBuffer(pkt);

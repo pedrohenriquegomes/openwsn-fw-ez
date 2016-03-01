@@ -530,7 +530,7 @@ port_INLINE void activity_synchronize_startOfFrame(PORT_RADIOTIMER_WIDTH capture
 
 port_INLINE void activity_synchronize_endOfFrame(PORT_RADIOTIMER_WIDTH capturedTime) {
    uint8_t    i;
-   eb_ht*     eb;
+   eb_ht      *eb_payload;
    
    // check state
    if (ieee154e_vars.state!=S_SYNCRX) {
@@ -593,20 +593,20 @@ port_INLINE void activity_synchronize_endOfFrame(PORT_RADIOTIMER_WIDTH capturedT
       }
 
       // parse eb
-      eb = (eb_ht*)(ieee154e_vars.dataReceived->payload);
+      eb_payload = (eb_ht*)(ieee154e_vars.dataReceived->payload);
       
       // break if not beacon
-      if (eb->type != LONGTYPE_BEACON) {
+      if (eb_payload->type != LONGTYPE_BEACON) {
          break;
       }
       
       // break if not new syncnum
-      if (eb->syncnum==ieee154e_vars.syncnum) {
+      if (eb_payload->syncnum==ieee154e_vars.syncnum) {
          break;
       }
       
       // break if from node outside of allowed topology
-      if (topology_isAcceptablePacket(eb->src)==FALSE) {
+      if (topology_isAcceptablePacket(eb_payload->l2_src)==FALSE) {
          break;
       }
       
@@ -625,13 +625,13 @@ port_INLINE void activity_synchronize_endOfFrame(PORT_RADIOTIMER_WIDTH capturedT
       radio_rfOff();
       
       // store syncnum
-      ieee154e_vars.syncnum = eb->syncnum;
+      ieee154e_vars.syncnum = eb_payload->syncnum;
       
       // store ASN
-      ieee154e_vars.asn.bytes0and1   =     eb->asn0+
-                                       256*eb->asn1;
-      ieee154e_vars.asn.bytes2and3   =     eb->asn2+
-                                       256*eb->asn3;
+      ieee154e_vars.asn.bytes0and1   =     eb_payload->asn0+
+                                       256*eb_payload->asn1;
+      ieee154e_vars.asn.bytes2and3   =     eb_payload->asn2+
+                                       256*eb_payload->asn3;
       ieee154e_vars.asn.byte4        =     0;
       
       // calculate the current slotoffset
@@ -696,8 +696,8 @@ port_INLINE void activity_synchronize_endOfFrame(PORT_RADIOTIMER_WIDTH capturedT
 //======= TX
 
 port_INLINE void activity_ti1ORri1() {
-   cellType_t  cellType;
-   eb_ht*      eb;
+   cellType_t   cellType;
+   eb_ht        *eb_payload;
    
    // increment ASN (do this first so debug pins are in sync)
    incrementAsnOffset();
@@ -795,10 +795,10 @@ port_INLINE void activity_ti1ORri1() {
             ieee154e_vars.dataToSend->owner = COMPONENT_IEEE802154E;
             
             // populate the EB fields
-            eb = (eb_ht*)(ieee154e_vars.dataToSend->payload);
+            eb_payload = (eb_ht*)(ieee154e_vars.dataToSend->payload);
             
             // fill in syncnum
-            eb->syncnum = ieee154e_vars.syncnum;
+            eb_payload->syncnum = ieee154e_vars.syncnum;
             
             // increment syncnum
             if (idmanager_getIsDAGroot()==TRUE) {
@@ -806,10 +806,10 @@ port_INLINE void activity_ti1ORri1() {
             }
               
             // fill in the ASN field
-            eb->asn0 = (ieee154e_vars.asn.bytes0and1     & 0xff);
-            eb->asn1 = (ieee154e_vars.asn.bytes0and1/256 & 0xff);
-            eb->asn2 = (ieee154e_vars.asn.bytes2and3     & 0xff);
-            eb->asn3 = (ieee154e_vars.asn.bytes2and3/256 & 0xff);
+            eb_payload->asn0 = (ieee154e_vars.asn.bytes0and1     & 0xff);
+            eb_payload->asn1 = (ieee154e_vars.asn.bytes0and1/256 & 0xff);
+            eb_payload->asn2 = (ieee154e_vars.asn.bytes2and3     & 0xff);
+            eb_payload->asn3 = (ieee154e_vars.asn.bytes2and3/256 & 0xff);
             
             // record that I attempt to transmit this packet
             ieee154e_vars.dataToSend->l2_numTxAttempts++;
@@ -959,8 +959,8 @@ port_INLINE void activity_tie3() {
 }
 
 port_INLINE void activity_ti5(PORT_RADIOTIMER_WIDTH capturedTime) {
-   bool listenForAck;
-   eb_ht* eb;
+   bool         listenForAck;
+   eb_ht        *eb_payload;
    
    // change state
    changeState(S_RXACKOFFSET);
@@ -976,10 +976,11 @@ port_INLINE void activity_ti5(PORT_RADIOTIMER_WIDTH capturedTime) {
    // record the captured time
    ieee154e_vars.lastCapturedTime = capturedTime;
    
-   eb = (eb_ht*)(ieee154e_vars.dataToSend->payload);
+   // parse the packet as an EB
+   eb_payload = (eb_ht*)(ieee154e_vars.dataToSend->payload);
    
    // decides whether to listen for an ACK
-   if (eb->dst == 0xffff) {
+   if (eb_payload->l2_dst == BROADCAST_ID) {
       listenForAck = FALSE;
    } else {
       listenForAck = TRUE;
@@ -1085,7 +1086,7 @@ port_INLINE void activity_tie6() {
 }
 
 port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
-   ack_ht* ack;
+   ack_ht       *ack_payload;
    
    // change state
    changeState(S_TXPROC);
@@ -1107,8 +1108,7 @@ port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
    if (ieee154e_vars.ackReceived==NULL) {
       // log the error
       openserial_printError(COMPONENT_IEEE802154E,ERR_NO_FREE_PACKET_BUFFER,
-                            (errorparameter_t)0,
-                            (errorparameter_t)0);
+                            (errorparameter_t)0, (errorparameter_t)0);
       // abort
       endSlot();
       return;
@@ -1152,22 +1152,22 @@ port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
          break;
       }
       
-      // parse the hack
-      ack = (ack_ht*)ieee154e_vars.ackReceived->payload;
+      // parse the ack
+      ack_payload = (ack_ht*)ieee154e_vars.ackReceived->payload;
  
       // break if invalid ACK
-      if (ack->type != LONGTYPE_ACK) {
+      if (ack_payload->type != LONGTYPE_ACK) {
          break;
       }
 
       // break if from node outside of allowable topology
-      if (topology_isAcceptablePacket(ack->src)==FALSE) {
+      if (topology_isAcceptablePacket(ack_payload->l2_src)==FALSE) {
          break;
       }
       
       // break if destination and source are not correct (we use ACK header since it is the same for data_ht)
-      if (ack->dst != idmanager_getMyShortID() || 
-          ack->src != ((ack_ht*)(ieee154e_vars.dataToSend->payload))->dst ) {
+      if (ack_payload->l2_dst != idmanager_getMyShortID() || 
+          ack_payload->l2_src != ((ack_ht*)(ieee154e_vars.dataToSend->payload))->l2_dst ) {
          // break from the do-while loop and execute the clean-up code below
          break;
       }
@@ -1272,7 +1272,7 @@ port_INLINE void activity_rie3() {
 }
 
 port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
-   eb_ht* eb;
+   eb_ht        *eb_payload;
    
    // change state
    changeState(S_TXACKOFFSET);
@@ -1342,15 +1342,15 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
       }
       
       // parse as if it's an EB (all packets start with type followed by src)
-      eb = (eb_ht*)ieee154e_vars.dataReceived->payload;
+      eb_payload = (eb_ht*)ieee154e_vars.dataReceived->payload;
       
       // break if wrong type
-      if (eb->type!=LONGTYPE_BEACON && eb->type!=LONGTYPE_DATA) {
+      if (eb_payload->type!=LONGTYPE_BEACON && eb_payload->type!=LONGTYPE_DATA) {
          break;
       }
       
       // break if from node outside of allowable topology
-      if (topology_isAcceptablePacket(eb->src)==FALSE) {
+      if (topology_isAcceptablePacket(eb_payload->l2_src)==FALSE) {
          break;
       }
       
@@ -1358,19 +1358,27 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
       ieee154e_vars.lastCapturedTime = capturedTime;
             
       // ack requested
-      if(eb->dst != 0xffff) {
-         // arm rt5
-         radiotimer_schedule(DURATION_rt5);
+      if(eb_payload->l2_dst != BROADCAST_ID) {
+        
+        if (eb_payload->l2_dst == idmanager_getMyShortID()) {
+           // lets send the ACK
+          
+           // arm rt5
+           radiotimer_schedule(DURATION_rt5);
+        }
+        else {
+          break;
+        }
       } else {
          // synchronize to the received packet iif I'm not a DAGroot and this is my preferred parent
          if (
             idmanager_getIsDAGroot() == FALSE &&
-            neighbors_isPreferredParent(eb->src) &&
-            eb->type == LONGTYPE_BEACON && 
-            eb->syncnum != ieee154e_vars.syncnum
+            neighbors_isPreferredParent(eb_payload->l2_src) &&
+            eb_payload->type == LONGTYPE_BEACON && 
+            eb_payload->syncnum != ieee154e_vars.syncnum
          ) {
             synchronizePacket(ieee154e_vars.syncCapturedTime);
-            ieee154e_vars.syncnum = eb->syncnum;
+            ieee154e_vars.syncnum = eb_payload->syncnum;
          }
       
          // indicate reception to upper layer
@@ -1399,7 +1407,7 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
 }
 
 port_INLINE void activity_ri6() {
-   ack_ht *ack;
+   ack_ht       *ack_payload;
    
    // change state
    changeState(S_TXACKPREPARE);
@@ -1433,10 +1441,10 @@ port_INLINE void activity_ri6() {
    
    // fill in ACK
    packetfunctions_reserveHeaderSize(ieee154e_vars.ackToSend,sizeof(ack_ht));
-   ack          = (ack_ht *)(ieee154e_vars.ackToSend->payload);
-   ack->type    = LONGTYPE_ACK;
-   ack->src     = idmanager_getMyShortID();
-   ack->dst     = ((eb_ht*)(ieee154e_vars.dataReceived->payload))->src;
+   ack_payload          = (ack_ht *)(ieee154e_vars.ackToSend->payload);
+   ack_payload->type    = LONGTYPE_ACK;
+   ack_payload->l2_src  = idmanager_getMyShortID();
+   ack_payload->l2_dst  = ((ack_ht*)(ieee154e_vars.dataReceived->payload))->l2_src;
    
    // space for 2-byte CRC
    packetfunctions_reserveFooterSize(ieee154e_vars.ackToSend,2);
@@ -1535,8 +1543,8 @@ port_INLINE void activity_ri9(PORT_RADIOTIMER_WIDTH capturedTime) {
    
    // synchronize to the received packet
    if (idmanager_getIsDAGroot()==FALSE && 
-       neighbors_isPreferredParent(((eb_ht*)(ieee154e_vars.dataReceived->payload))->src)) {
-      synchronizePacket(ieee154e_vars.syncCapturedTime);
+       neighbors_isPreferredParent(((eb_ht*)(ieee154e_vars.dataReceived->payload))->l2_src)) {
+       synchronizePacket(ieee154e_vars.syncCapturedTime);
    }
    
    // inform upper layer of reception (after ACK sent)

@@ -46,7 +46,8 @@ timers_res_fired() function, but is declared as a separate function for better
 readability of the code.
 */
 port_INLINE void sixtop_sendEB(void) {
-   OpenQueueEntry_t* eb;
+   OpenQueueEntry_t     *eb;
+   eb_ht                *eb_payload;
    
    if (neighbors_getMyDAGrank()==DEFAULTDAGRANK){
       // I have not acquired a DAGrank yet
@@ -70,22 +71,23 @@ port_INLINE void sixtop_sendEB(void) {
    // declare ownership over that packet
    eb->creator                              = COMPONENT_SIXTOP;
    eb->owner                                = COMPONENT_SIXTOP;
-   
-   // fill in EB
-   packetfunctions_reserveHeaderSize(eb,sizeof(eb_ht));
-   ((eb_ht*)(eb->payload))->type            = LONGTYPE_BEACON;
-   ((eb_ht*)(eb->payload))->src             = idmanager_getMyShortID();
-   ((eb_ht*)(eb->payload))->dst             = 0xffff;
-   ((eb_ht*)(eb->payload))->ebrank          = (uint8_t)neighbors_getMyDAGrank();
-   
-   // remember where to write the ASN to
-   eb->l2_ASNpayload                        = (uint8_t*)(&((eb_ht*)(eb->payload))->asn0);
-   
+
    // some l2 information about this packet
    eb->l2_frameType                         = SHORTTYPE_BEACON;
    eb->l2_nextORpreviousHop.type            = ADDR_16B;
-   eb->l2_nextORpreviousHop.addr_16b[0]     = 0xff;
-   eb->l2_nextORpreviousHop.addr_16b[1]     = 0xff;
+   eb->l2_nextORpreviousHop.addr_16b[0]     = (uint8_t)(LONGTYPE_BEACON & 0xff);
+   eb->l2_nextORpreviousHop.addr_16b[1]     = (uint8_t)(LONGTYPE_BEACON & 0xff);
+   
+   // fill in EB
+   packetfunctions_reserveHeaderSize(eb,sizeof(eb_ht));
+   eb_payload                  = (eb_ht*)(eb->payload);
+   eb_payload->type            = LONGTYPE_BEACON;
+   eb_payload->l2_src          = idmanager_getMyShortID();
+   eb_payload->l2_dst          = BROADCAST_ID;
+   eb_payload->ebrank          = (uint8_t)neighbors_getMyDAGrank();
+   
+   // remember where to write the ASN to
+   eb->l2_ASNpayload                        = (uint8_t*)(&((eb_ht*)(eb->payload))->asn0);
    
    // put in queue for MAC to handle
    sixtop_send_internal(eb);
@@ -97,12 +99,8 @@ void task_sixtopNotifSendDone(void) {
    // get recently-sent packet from openqueue
    msg = openqueue_sixtopGetSentPacket();
    if (msg==NULL) {
-      openserial_printCritical(
-         COMPONENT_SIXTOP,
-         ERR_NO_SENT_PACKET,
-         (errorparameter_t)0,
-         (errorparameter_t)0
-      );
+      openserial_printCritical(COMPONENT_SIXTOP, ERR_NO_SENT_PACKET,
+                              (errorparameter_t)0, (errorparameter_t)0);
       return;
    }
    
@@ -133,18 +131,14 @@ void task_sixtopNotifSendDone(void) {
 }
 
 void task_sixtopNotifReceive(void) {
-   OpenQueueEntry_t*    msg;
-   eb_ht*               eb;
+   OpenQueueEntry_t     *msg;
+   eb_ht                *eb_payload;
    
    // get received packet from openqueue
    msg = openqueue_sixtopGetReceivedPacket();
    if (msg==NULL) {
-      openserial_printCritical(
-         COMPONENT_SIXTOP,
-         ERR_NO_RECEIVED_PACKET,
-         (errorparameter_t)0,
-         (errorparameter_t)0
-      );
+      openserial_printCritical(COMPONENT_SIXTOP, ERR_NO_RECEIVED_PACKET,
+                               (errorparameter_t)0, (errorparameter_t)0);
       return;
    }
    
@@ -152,17 +146,13 @@ void task_sixtopNotifReceive(void) {
    msg->owner = COMPONENT_SIXTOP;
    
    // parse as if it's an EB (all packets start with type, src, dst)
-   eb = (eb_ht*)msg->payload;
+   eb_payload = (eb_ht*)msg->payload;
    
    // update neighbor statistics
-   neighbors_indicateRx(
-      eb->src,
-      msg->l1_rssi,
-      &msg->l2_asn
-   );
+   neighbors_indicateRx(eb_payload->l2_src, msg->l1_rssi, &msg->l2_asn);
    
    // send the packet up the stack, if it qualifies
-   switch (eb->type) {
+   switch (eb_payload->type) {
       case LONGTYPE_BEACON:
          neighbors_indicateRxEB(msg);
          break;
@@ -171,12 +161,8 @@ void task_sixtopNotifReceive(void) {
          break;
       default:
          // log the error
-         openserial_printError(
-            COMPONENT_SIXTOP,
-            ERR_MSG_UNKNOWN_TYPE,
-            (errorparameter_t)eb->type,
-            (errorparameter_t)0
-         );
+         openserial_printError(COMPONENT_SIXTOP, ERR_MSG_UNKNOWN_TYPE,
+                               (errorparameter_t)eb_payload->type, (errorparameter_t)0);
          break;
    }
    // free the packet's RAM memory

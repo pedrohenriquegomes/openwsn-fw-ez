@@ -232,18 +232,18 @@ void neighbors_indicateRx(
 }
 
 void neighbors_indicateRxEB(OpenQueueEntry_t* msg) {
-   uint8_t  i;
-   eb_ht*   eb;
+   uint8_t      i;
+   eb_ht        *eb_payload;
   
    // take ownership over the packet
    msg->owner = COMPONENT_NEIGHBORS;
    
    // update rank
-   eb = (eb_ht*)msg->payload;
-   if (isNeighbor(eb->src)==TRUE) {
+   eb_payload = (eb_ht*)msg->payload;
+   if (isNeighbor(eb_payload->l2_src)==TRUE) {
       for (i=0;i<MAXNUMNEIGHBORS;i++) {
-         if (isThisRowMatching(eb->src,i)) {
-            neighbors_vars.neighbors[i].DAGrank = eb->ebrank;
+         if (isThisRowMatching(eb_payload->l2_src,i)) {
+            neighbors_vars.neighbors[i].DAGrank = eb_payload->ebrank;
             break;
          }
       }
