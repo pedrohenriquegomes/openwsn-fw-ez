@@ -9,6 +9,7 @@
 */
 
 #include "opentimers.h"
+#include "sixtop.h"
 
 //=========================== define ==========================================
 
@@ -18,9 +19,7 @@
 
 BEGIN_PACK
 typedef struct {                                 // always written big endian, i.e. MSB in addr[0]
-   uint16_t  type;
-   uint16_t  l2_src;
-   uint16_t  l2_dst;
+   l2_ht     l2_hdr;
    uint16_t  l3_src;
    uint16_t  l3_dst;
    uint16_t  counter;

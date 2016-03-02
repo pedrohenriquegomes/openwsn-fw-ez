@@ -596,7 +596,7 @@ port_INLINE void activity_synchronize_endOfFrame(PORT_RADIOTIMER_WIDTH capturedT
       eb_payload = (eb_ht*)(ieee154e_vars.dataReceived->payload);
       
       // break if not beacon
-      if (eb_payload->type != LONGTYPE_BEACON) {
+      if (eb_payload->l2_hdr.type != LONGTYPE_BEACON) {
          break;
       }
       
@@ -606,7 +606,7 @@ port_INLINE void activity_synchronize_endOfFrame(PORT_RADIOTIMER_WIDTH capturedT
       }
       
       // break if from node outside of allowed topology
-      if (topology_isAcceptablePacket(eb_payload->l2_src)==FALSE) {
+      if (topology_isAcceptablePacket(eb_payload->l2_hdr.src)==FALSE) {
          break;
       }
       
@@ -980,7 +980,7 @@ port_INLINE void activity_ti5(PORT_RADIOTIMER_WIDTH capturedTime) {
    eb_payload = (eb_ht*)(ieee154e_vars.dataToSend->payload);
    
    // decides whether to listen for an ACK
-   if (eb_payload->l2_dst == BROADCAST_ID) {
+   if (eb_payload->l2_hdr.dst == BROADCAST_ID) {
       listenForAck = FALSE;
    } else {
       listenForAck = TRUE;
@@ -1086,7 +1086,7 @@ port_INLINE void activity_tie6() {
 }
 
 port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
-   ack_ht       *ack_payload;
+   l2_ht       *payload;
    
    // change state
    changeState(S_TXPROC);
@@ -1153,21 +1153,21 @@ port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
       }
       
       // parse the ack
-      ack_payload = (ack_ht*)ieee154e_vars.ackReceived->payload;
+      payload = (l2_ht*)ieee154e_vars.ackReceived->payload;
  
       // break if invalid ACK
-      if (ack_payload->type != LONGTYPE_ACK) {
+      if (payload->type != LONGTYPE_ACK) {
          break;
       }
 
       // break if from node outside of allowable topology
-      if (topology_isAcceptablePacket(ack_payload->l2_src)==FALSE) {
+      if (topology_isAcceptablePacket(payload->src)==FALSE) {
          break;
       }
       
       // break if destination and source are not correct (we use ACK header since it is the same for data_ht)
-      if (ack_payload->l2_dst != idmanager_getMyShortID() || 
-          ack_payload->l2_src != ((ack_ht*)(ieee154e_vars.dataToSend->payload))->l2_dst ) {
+      if (payload->dst != idmanager_getMyShortID() || 
+          payload->src != ((l2_ht*)(ieee154e_vars.dataToSend->payload))->dst ) {
          // break from the do-while loop and execute the clean-up code below
          break;
       }
@@ -1345,12 +1345,12 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
       eb_payload = (eb_ht*)ieee154e_vars.dataReceived->payload;
       
       // break if wrong type
-      if (eb_payload->type!=LONGTYPE_BEACON && eb_payload->type!=LONGTYPE_DATA) {
+      if (eb_payload->l2_hdr.type!=LONGTYPE_BEACON && eb_payload->l2_hdr.type!=LONGTYPE_DATA) {
          break;
       }
       
       // break if from node outside of allowable topology
-      if (topology_isAcceptablePacket(eb_payload->l2_src)==FALSE) {
+      if (topology_isAcceptablePacket(eb_payload->l2_hdr.src)==FALSE) {
          break;
       }
       
@@ -1358,9 +1358,9 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
       ieee154e_vars.lastCapturedTime = capturedTime;
             
       // ack requested
-      if(eb_payload->l2_dst != BROADCAST_ID) {
+      if(eb_payload->l2_hdr.dst != BROADCAST_ID) {
         
-        if (eb_payload->l2_dst == idmanager_getMyShortID()) {
+        if (eb_payload->l2_hdr.dst == idmanager_getMyShortID()) {
            // lets send the ACK
           
            // arm rt5
@@ -1373,8 +1373,8 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
          // synchronize to the received packet iif I'm not a DAGroot and this is my preferred parent
          if (
             idmanager_getIsDAGroot() == FALSE &&
-            neighbors_isPreferredParent(eb_payload->l2_src) &&
-            eb_payload->type == LONGTYPE_BEACON && 
+            neighbors_isPreferredParent(eb_payload->l2_hdr.src) &&
+            eb_payload->l2_hdr.type == LONGTYPE_BEACON && 
             eb_payload->syncnum != ieee154e_vars.syncnum
          ) {
             synchronizePacket(ieee154e_vars.syncCapturedTime);
@@ -1407,7 +1407,7 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
 }
 
 port_INLINE void activity_ri6() {
-   ack_ht       *ack_payload;
+   l2_ht       *payload;
    
    // change state
    changeState(S_TXACKPREPARE);
@@ -1441,10 +1441,10 @@ port_INLINE void activity_ri6() {
    
    // fill in ACK
    packetfunctions_reserveHeaderSize(ieee154e_vars.ackToSend,sizeof(ack_ht));
-   ack_payload          = (ack_ht *)(ieee154e_vars.ackToSend->payload);
-   ack_payload->type    = LONGTYPE_ACK;
-   ack_payload->l2_src  = idmanager_getMyShortID();
-   ack_payload->l2_dst  = ((ack_ht*)(ieee154e_vars.dataReceived->payload))->l2_src;
+   payload       = (l2_ht*)(ieee154e_vars.ackToSend->payload);
+   payload->type = LONGTYPE_ACK;
+   payload->src  = idmanager_getMyShortID();
+   payload->dst  = ((l2_ht*)(ieee154e_vars.dataReceived->payload))->src;
    
    // space for 2-byte CRC
    packetfunctions_reserveFooterSize(ieee154e_vars.ackToSend,2);
@@ -1526,6 +1526,8 @@ port_INLINE void activity_rie6() {
 }
 
 port_INLINE void activity_ri9(PORT_RADIOTIMER_WIDTH capturedTime) {
+   l2_ht        *payload;
+   
    // change state
    changeState(S_RXPROC);
    
@@ -1541,9 +1543,11 @@ port_INLINE void activity_ri9(PORT_RADIOTIMER_WIDTH capturedTime) {
    // clear local variable
    ieee154e_vars.ackToSend = NULL;
    
+   payload = (l2_ht*)(ieee154e_vars.dataReceived->payload);
+   
    // synchronize to the received packet
    if (idmanager_getIsDAGroot()==FALSE && 
-       neighbors_isPreferredParent(((eb_ht*)(ieee154e_vars.dataReceived->payload))->l2_src)) {
+       neighbors_isPreferredParent(payload->src)) {
        synchronizePacket(ieee154e_vars.syncCapturedTime);
    }
    

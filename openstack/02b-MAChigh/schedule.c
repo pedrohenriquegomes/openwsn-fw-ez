@@ -51,48 +51,6 @@ void schedule_init() {
    }
 }
 
-/**
-\brief Trigger this module to print status information, over serial.
-
-debugPrint_* functions are used by the openserial module to continuously print
-status information about several modules in the OpenWSN stack.
-
-\returns TRUE if this function printed something, FALSE otherwise.
-*/
-bool debugPrint_schedule() {
-   debugScheduleEntry_t temp;
-   
-   // increment the row just printed
-   schedule_vars.debugPrintRow         = (schedule_vars.debugPrintRow+1)%MAXACTIVESLOTS;
-   
-   // gather status data
-   temp.row                            = schedule_vars.debugPrintRow;
-   temp.slotOffset                     = \
-      schedule_vars.scheduleBuf[schedule_vars.debugPrintRow].slotOffset;
-   temp.type                           = \
-      schedule_vars.scheduleBuf[schedule_vars.debugPrintRow].type;
-   temp.channelOffset                  = \
-      schedule_vars.scheduleBuf[schedule_vars.debugPrintRow].channelOffset;
-   temp.numRx                          = \
-      schedule_vars.scheduleBuf[schedule_vars.debugPrintRow].numRx;
-   temp.numTx                          = \
-      schedule_vars.scheduleBuf[schedule_vars.debugPrintRow].numTx;
-   memcpy(
-      &temp.lastUsedAsn,
-      &schedule_vars.scheduleBuf[schedule_vars.debugPrintRow].lastUsedAsn,
-      sizeof(asn_t)
-   );
-   
-   // send status data over serial port
-   openserial_printStatus(
-      STATUS_SCHEDULE,
-      (uint8_t*)&temp,
-      sizeof(debugScheduleEntry_t)
-   );
-   
-   return TRUE;
-}
-
 //=== from 6top (writing the schedule)
 
 /**

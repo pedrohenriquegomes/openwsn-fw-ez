@@ -328,9 +328,9 @@ void neighbors_indicateRxEB(OpenQueueEntry_t* msg) {
    
    // update rank
    eb_payload = (eb_ht*)msg->payload;
-   if (isNeighbor(eb_payload->l2_src)==TRUE) {
+   if (isNeighbor(eb_payload->l2_hdr.src)==TRUE) {
       for (i=0;i<MAXNUMNEIGHBORS;i++) {
-         if (isThisRowMatching(eb_payload->l2_src,i)) {
+         if (isThisRowMatching(eb_payload->l2_hdr.src,i)) {
             if ( eb_payload->ebrank > neighbors_vars.neighbors[i].DAGrank &&
                  eb_payload->ebrank - neighbors_vars.neighbors[i].DAGrank >(DEFAULTLINKCOST*2*MINHOPRANKINCREASE)
                ) {

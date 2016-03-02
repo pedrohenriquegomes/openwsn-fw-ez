@@ -310,24 +310,12 @@ void openserial_startOutput() {
          if (debugPrint_myDAGrank()==TRUE) {
             break;
          }
-      case STATUS_OUTBUFFERINDEXES:
-         if (debugPrint_outBufferIndexes()==TRUE) {
-            break;
-         }
       case STATUS_ASN:
          if (debugPrint_asn()==TRUE) {
             break;
          }
       case STATUS_MACSTATS:
          if (debugPrint_macStats()==TRUE) {
-            break;
-         }
-      case STATUS_SCHEDULE:
-         if(debugPrint_schedule()==TRUE) {
-            break;
-         }
-      case STATUS_QUEUE:
-         if(debugPrint_queue()==TRUE) {
             break;
          }
       case STATUS_NEIGHBORS:
@@ -462,25 +450,6 @@ void openserial_goldenImageCommands(void){
            // wrong command ID
            break;
    }
-}
-
-/**
-\brief Trigger this module to print status information, over serial.
-
-debugPrint_* functions are used by the openserial module to continuously print
-status information about several modules in the OpenWSN stack.
-
-\returns TRUE if this function printed something, FALSE otherwise.
-*/
-bool debugPrint_outBufferIndexes() {
-   uint16_t temp_buffer[2];
-   INTERRUPT_DECLARATION();
-   DISABLE_INTERRUPTS();
-   temp_buffer[0] = openserial_vars.outputBufIdxW;
-   temp_buffer[1] = openserial_vars.outputBufIdxR;
-   ENABLE_INTERRUPTS();
-   openserial_printStatus(STATUS_OUTBUFFERINDEXES,(uint8_t*)temp_buffer,sizeof(temp_buffer));
-   return TRUE;
 }
 
 //=========================== private =========================================

@@ -16,6 +16,8 @@
 
 //=========================== variables =======================================
 
+sixtop_vars_t sixtop_vars;
+
 //=========================== prototypes ======================================
 
 owerror_t     sixtop_send_internal(OpenQueueEntry_t* msg);
@@ -23,6 +25,7 @@ owerror_t     sixtop_send_internal(OpenQueueEntry_t* msg);
 //=========================== public ==========================================
 
 void sixtop_init() {
+  sixtop_vars.dsn                = 0;
 }
 
 //======= from upper layer
@@ -81,9 +84,9 @@ port_INLINE void sixtop_sendEB(void) {
    // fill in EB
    packetfunctions_reserveHeaderSize(eb,sizeof(eb_ht));
    eb_payload                  = (eb_ht*)(eb->payload);
-   eb_payload->type            = LONGTYPE_BEACON;
-   eb_payload->l2_src          = idmanager_getMyShortID();
-   eb_payload->l2_dst          = BROADCAST_ID;
+   eb_payload->l2_hdr.type     = LONGTYPE_BEACON;
+   eb_payload->l2_hdr.src      = idmanager_getMyShortID();
+   eb_payload->l2_hdr.dst      = BROADCAST_ID;
    eb_payload->ebrank          = neighbors_getMyDAGrank();
    
    // remember where to write the ASN to
@@ -95,7 +98,7 @@ port_INLINE void sixtop_sendEB(void) {
 
 void task_sixtopNotifSendDone(void) {
    OpenQueueEntry_t     *msg;
-   eb_ht                 *eb_payload;
+   l2_ht                *payload;
    
    // get recently-sent packet from openqueue
    msg = openqueue_sixtopGetSentPacket();
@@ -109,19 +112,19 @@ void task_sixtopNotifSendDone(void) {
    msg->owner = COMPONENT_SIXTOP;
    
    // parse the payload
-   eb_payload = (eb_ht *)(msg->payload);
+   payload = (l2_ht *)(msg->payload);
    
    // update neighbor statistics
    if (msg->l2_sendDoneError==E_SUCCESS) {
       neighbors_indicateTx(
-         eb_payload->l2_dst,
+         payload->dst,
          msg->l2_numTxAttempts,
          TRUE,
          &msg->l2_asn
       );
    } else {
       neighbors_indicateTx(
-         eb_payload->l2_dst,
+         payload->dst,
          msg->l2_numTxAttempts,
          FALSE,
          &msg->l2_asn
@@ -153,7 +156,7 @@ void task_sixtopNotifSendDone(void) {
 
 void task_sixtopNotifReceive(void) {
    OpenQueueEntry_t     *msg;
-   eb_ht                *eb_payload;
+   l2_ht                *payload;
    
    // get received packet from openqueue
    msg = openqueue_sixtopGetReceivedPacket();
@@ -167,13 +170,13 @@ void task_sixtopNotifReceive(void) {
    msg->owner = COMPONENT_SIXTOP;
    
    // parse as if it's an EB (all packets start with type, src, dst)
-   eb_payload = (eb_ht*)msg->payload;
+   payload = (l2_ht*)msg->payload;
    
    // update neighbor statistics
-   neighbors_indicateRx(eb_payload->l2_src, msg->l1_rssi, &msg->l2_asn);
+   neighbors_indicateRx(payload->src, msg->l1_rssi, &msg->l2_asn);
    
    // send the packet up the stack, if it qualifies
-   switch (eb_payload->type) {
+   switch (payload->type) {
       case LONGTYPE_BEACON:
          neighbors_indicateRxEB(msg);
          break;
@@ -183,7 +186,7 @@ void task_sixtopNotifReceive(void) {
       default:
          // log the error
          openserial_printError(COMPONENT_SIXTOP, ERR_MSG_UNKNOWN_TYPE,
-                               (errorparameter_t)eb_payload->type, (errorparameter_t)0);
+                               (errorparameter_t)payload->type, (errorparameter_t)0);
          break;
    }
    // free the packet's RAM memory
@@ -237,6 +240,9 @@ owerror_t sixtop_send_internal(OpenQueueEntry_t* msg) {
    } else {
       msg->l2_retriesLeft = TXRETRIES + 1;
    }
+   
+   // record this packet's dsn (for matching the ACK)
+   msg->l2_dsn = sixtop_vars.dsn++;
    // this is a new packet which I never attempted to send
    msg->l2_numTxAttempts = 0;
    // transmit with the default TX power

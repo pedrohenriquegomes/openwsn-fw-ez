@@ -104,13 +104,10 @@ enum {
    STATUS_ISSYNC                       =  0,
    STATUS_ID                           =  1,
    STATUS_DAGRANK                      =  2,
-   STATUS_OUTBUFFERINDEXES             =  3,
-   STATUS_ASN                          =  4,
-   STATUS_MACSTATS                     =  5,
-   STATUS_SCHEDULE                     =  6,
-   STATUS_QUEUE                        =  7,
-   STATUS_NEIGHBORS                    =  8,
-   STATUS_MAX                          =  9,
+   STATUS_ASN                          =  3,
+   STATUS_MACSTATS                     =  4,
+   STATUS_NEIGHBORS                    =  5,
+   STATUS_MAX                          =  6,
 };
 
 //component identifiers
@@ -313,13 +310,6 @@ typedef struct {
    bool          l2_payloadIEpresent;            // did I have payload IE field
    bool          l2_joinPriorityPresent;
    int16_t       l2_timeCorrection;              // record the timeCorrection and print out at endOfslot
-   //layer-2 security
-   uint8_t       l2_securityLevel;               //the security level specified for the current frame
-   uint8_t       l2_keyIdMode;                   //the key Identifier mode specified for the current frame
-   uint8_t       l2_keyIndex;                    //the key Index specified for the current frame
-   uint16_t      l2_rank;
-   uint16_t      l2_floodingCounter;
-   bool          l2_floodingState;
    //l1 (drivers)
    uint8_t       l1_txPower;                     // power for packet to Tx at
    int8_t        l1_rssi;                        // RSSI of received packet

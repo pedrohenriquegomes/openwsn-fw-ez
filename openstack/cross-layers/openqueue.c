@@ -26,25 +26,6 @@ void openqueue_init() {
    }
 }
 
-/**
-\brief Trigger this module to print status information, over serial.
-
-debugPrint_* functions are used by the openserial module to continuously print
-status information about several modules in the OpenWSN stack.
-
-\returns TRUE if this function printed something, FALSE otherwise.
-*/
-bool debugPrint_queue() {
-   debugOpenQueueEntry_t output[QUEUELENGTH];
-   uint8_t i;
-   for (i=0;i<QUEUELENGTH;i++) {
-      output[i].creator = openqueue_vars.queue[i].creator;
-      output[i].owner   = openqueue_vars.queue[i].owner;
-   }
-   openserial_printStatus(STATUS_QUEUE,(uint8_t*)&output,QUEUELENGTH*sizeof(debugOpenQueueEntry_t));
-   return TRUE;
-}
-
 //======= called by any component
 
 /**

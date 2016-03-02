@@ -64,17 +64,17 @@ void uinject_receive(OpenQueueEntry_t* pkt) {
    
       // fill fwd payload
       packetfunctions_reserveHeaderSize(fwd, sizeof(uinject_ht));
-      fwd_payload           = (uinject_ht*)(fwd->payload);
-      fwd_payload->type     = LONGTYPE_DATA;
-      fwd_payload->l2_src   = idmanager_getMyShortID();
-      fwd_payload->l2_dst   = nextHop;
-      fwd_payload->l3_src   = pkt_payload->l3_src;
-      fwd_payload->l3_dst   = pkt_payload->l3_dst;
-      fwd_payload->counter  = pkt_payload->counter;
-      fwd_payload->asn0     = pkt_payload->asn0;
-      fwd_payload->asn1     = pkt_payload->asn1;
-      fwd_payload->asn2     = pkt_payload->asn2;
-      fwd_payload->asn3     = pkt_payload->asn3;
+      fwd_payload               = (uinject_ht*)(fwd->payload);
+      fwd_payload->l2_hdr.type  = LONGTYPE_DATA;
+      fwd_payload->l2_hdr.src   = idmanager_getMyShortID();
+      fwd_payload->l2_hdr.dst   = nextHop;
+      fwd_payload->l3_src       = pkt_payload->l3_src;
+      fwd_payload->l3_dst       = pkt_payload->l3_dst;
+      fwd_payload->counter      = pkt_payload->counter;
+      fwd_payload->asn0         = pkt_payload->asn0;
+      fwd_payload->asn1         = pkt_payload->asn1;
+      fwd_payload->asn2         = pkt_payload->asn2;
+      fwd_payload->asn3         = pkt_payload->asn3;
    
       openserial_printError(COMPONENT_UINJECT, ERR_UINJECT_FWD, 
                             (errorparameter_t)0, (errorparameter_t)0);
@@ -146,9 +146,9 @@ void uinject_task_cb() {
    // fill payload
    packetfunctions_reserveHeaderSize(pkt ,sizeof(uinject_ht));
    payload              = (uinject_ht*)(pkt->payload);
-   payload->type        = LONGTYPE_DATA;
-   payload->l2_src      = idmanager_getMyShortID();
-   payload->l2_dst      = nextHop;
+   payload->l2_hdr.type = LONGTYPE_DATA;
+   payload->l2_hdr.src  = idmanager_getMyShortID();
+   payload->l2_hdr.dst  = nextHop;
    payload->l3_src      = idmanager_getMyShortID();
    payload->l3_dst      = SINK_ID;
    payload->counter     = uinject_vars.counter++;

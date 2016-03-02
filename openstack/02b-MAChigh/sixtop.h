@@ -48,8 +48,15 @@ typedef enum {
 BEGIN_PACK
 typedef struct {                                 // always written big endian, i.e. MSB in addr[0]
    uint16_t  type;
-   uint16_t  l2_src;
-   uint16_t  l2_dst;
+   uint8_t   dsn;
+   uint16_t  src;
+   uint16_t  dst;
+} l2_ht;
+END_PACK
+
+BEGIN_PACK
+typedef struct {                                 // always written big endian, i.e. MSB in addr[0]
+   l2_ht     l2_hdr;
    uint8_t   syncnum;
    uint16_t  ebrank;
    uint8_t   asn0;
@@ -61,9 +68,7 @@ END_PACK
 
 BEGIN_PACK
 typedef struct {                                 // always written big endian, i.e. MSB in addr[0]
-   uint16_t  type;
-   uint16_t  l2_src;
-   uint16_t  l2_dst;
+   l2_ht     l2_hdr;
 } ack_ht;
 END_PACK
 
@@ -73,6 +78,10 @@ END_PACK
 #define SIXTOP_MINIMAL_EBPERIOD 5 // minist period of sending EB
 
 //=========================== module variables ================================
+
+typedef struct {
+   uint8_t              dsn;                     // current data sequence number
+} sixtop_vars_t;
 
 //=========================== prototypes ======================================
 
