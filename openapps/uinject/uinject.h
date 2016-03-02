@@ -23,7 +23,7 @@ typedef struct {                                 // always written big endian, i
    uint16_t  l2_dst;
    uint16_t  l3_src;
    uint16_t  l3_dst;
-   uint8_t   counter;
+   uint16_t  counter;
 } uinject_ht;
 END_PACK
 
