@@ -9,27 +9,20 @@
 #include "IEEE802154E.h"
 #include "neighbors.h"
 #include "sixtop.h"
-//#include "icmpv6echo.h"
 #include "idmanager.h"
 #include "openqueue.h"
-//#include "openbridge.h"
 #include "leds.h"
 #include "schedule.h"
 #include "uart.h"
 #include "opentimers.h"
 #include "openhdlc.h"
 #include "schedule.h"
-//#include "icmpv6rpl.h"
 
 //=========================== variables =======================================
 
 openserial_vars_t openserial_vars;
 
 //=========================== prototypes ======================================
-
-#ifdef GOLDEN_IMAGE_SNIFFER
-extern void sniffer_setListeningChannel(uint8_t channel);
-#endif
 
 owerror_t openserial_printInfoErrorCritical(
    char             severity,
@@ -92,7 +85,6 @@ void openserial_init() {
 }
 
 owerror_t openserial_printStatus(uint8_t statusElement,uint8_t* buffer, uint8_t length) {
-#ifdef ENABLE_OPENSERIAL
   uint8_t i;
    INTERRUPT_DECLARATION();
    
@@ -108,7 +100,6 @@ owerror_t openserial_printStatus(uint8_t statusElement,uint8_t* buffer, uint8_t 
    }
    outputHdlcClose();
    ENABLE_INTERRUPTS();
-#endif
    return E_SUCCESS;
 }
 
@@ -119,7 +110,6 @@ owerror_t openserial_printInfoErrorCritical(
       errorparameter_t arg1,
       errorparameter_t arg2
    ) {
-#ifdef ENABLE_OPENSERIAL
    INTERRUPT_DECLARATION();
    
    DISABLE_INTERRUPTS();
@@ -136,12 +126,10 @@ owerror_t openserial_printInfoErrorCritical(
    outputHdlcWrite((uint8_t) (arg2 & 0x00ff));
    outputHdlcClose();
    ENABLE_INTERRUPTS();
-#endif
    return E_SUCCESS;
 }
 
 owerror_t openserial_printData(uint8_t* buffer, uint8_t length) {
-#ifdef ENABLE_OPENSERIAL
    uint8_t  i;
    uint8_t  asn[5];
    INTERRUPT_DECLARATION();
@@ -165,12 +153,10 @@ owerror_t openserial_printData(uint8_t* buffer, uint8_t length) {
    }
    outputHdlcClose();
    ENABLE_INTERRUPTS();
-#endif
    return E_SUCCESS;
 }
 
 owerror_t openserial_printPacket(uint8_t* buffer, uint8_t length, uint8_t channel) {
-#ifdef ENABLE_OPENSERIAL
    uint8_t  i;
    INTERRUPT_DECLARATION();
    
@@ -187,7 +173,6 @@ owerror_t openserial_printPacket(uint8_t* buffer, uint8_t length, uint8_t channe
    outputHdlcClose();
    
    ENABLE_INTERRUPTS();
-#endif
    return E_SUCCESS;
 }
 
@@ -276,7 +261,6 @@ uint8_t openserial_getInputBuffer(uint8_t* bufferToWrite, uint8_t maxNumBytes) {
 }
 
 void openserial_startInput() {
-#ifdef ENABLE_OPENSERIAL
    INTERRUPT_DECLARATION();
    
    if (openserial_vars.inputBufFill>0) {
@@ -300,11 +284,9 @@ void openserial_startInput() {
    uart_writeByte(openserial_vars.reqFrame[openserial_vars.reqFrameIdx]);
 
    ENABLE_INTERRUPTS();
-#endif
 }
 
 void openserial_startOutput() {
-#ifdef ENABLE_OPENSERIAL
    //schedule a task to get new status in the output buffer
    uint8_t debugPrintCounter;
    
@@ -370,11 +352,9 @@ void openserial_startOutput() {
       openserial_stop();
    }
    ENABLE_INTERRUPTS();
-#endif
 }
 
 void openserial_stop() {
-#ifdef ENABLE_OPENSERIAL
    uint8_t inputBufFill;
    uint8_t cmdByte;
    bool busyReceiving;
@@ -428,7 +408,6 @@ void openserial_stop() {
    openserial_vars.inputBufFill  = 0;
    openserial_vars.busyReceiving = FALSE;
    ENABLE_INTERRUPTS();
-#endif
 }
 
 void openserial_goldenImageCommands(void){
