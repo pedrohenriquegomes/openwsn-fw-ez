@@ -71,7 +71,11 @@ void uinject_receive(OpenQueueEntry_t* pkt) {
       fwd_payload->l3_src   = pkt_payload->l3_src;
       fwd_payload->l3_dst   = pkt_payload->l3_dst;
       fwd_payload->counter  = pkt_payload->counter;
-      
+      fwd_payload->asn0     = pkt_payload->asn0;
+      fwd_payload->asn1     = pkt_payload->asn1;
+      fwd_payload->asn2     = pkt_payload->asn2;
+      fwd_payload->asn3     = pkt_payload->asn3;
+   
       openserial_printError(COMPONENT_UINJECT, ERR_UINJECT_FWD, 
                             (errorparameter_t)0, (errorparameter_t)0);
       
@@ -82,8 +86,17 @@ void uinject_receive(OpenQueueEntry_t* pkt) {
    else {
       // just process the packet  
       
+      uint8_t asn[5];   // we create a local array to store the ASN from the rcv packet
+      asn[0] = 0;                       // byte4
+      asn[1] = pkt_payload->asn2;       // bytes2and3
+      asn[2] = pkt_payload->asn3;       // bytes2and3
+      asn[3] = pkt_payload->asn0;       // bytes0and1
+      asn[4] = pkt_payload->asn1;       // bytes0and1
+        
+      uint32_t asnDiff = ieee154e_asnDiff((asn_t *)asn);
+       
       openserial_printError(COMPONENT_UINJECT, ERR_UINJECT_RCV, 
-                        (errorparameter_t)0, (errorparameter_t)0);
+                           (errorparameter_t)asnDiff, (errorparameter_t)0);
    }
    
    // pkt will be destroyed by sixtop
@@ -140,6 +153,14 @@ void uinject_task_cb() {
    payload->l3_dst      = SINK_ID;
    payload->counter     = uinject_vars.counter++;
    
+   // get the current ASN
+   uint8_t curAsn[5];
+   ieee154e_getAsn(curAsn);
+   payload->asn0        = curAsn[0];
+   payload->asn1        = curAsn[1];
+   payload->asn2        = curAsn[2];
+   payload->asn3        = curAsn[3];
+            
    if ((sixtop_send(pkt))==E_FAIL) {
       openqueue_freePacketBuffer(pkt);
    }

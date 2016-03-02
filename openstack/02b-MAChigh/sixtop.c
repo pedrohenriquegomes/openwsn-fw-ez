@@ -87,7 +87,7 @@ port_INLINE void sixtop_sendEB(void) {
    eb_payload->ebrank          = neighbors_getMyDAGrank();
    
    // remember where to write the ASN to
-   eb->l2_ASNpayload                        = (uint8_t*)(&((eb_ht*)(eb->payload))->asn0);
+   eb->l2_ASNpayload                        = (uint8_t*)(&(eb_payload)->asn0);
    
    // put in queue for MAC to handle
    sixtop_send_internal(eb);
