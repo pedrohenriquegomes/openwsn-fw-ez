@@ -33,22 +33,41 @@ void schedule_init() {
    }
    
    // EB slot(s)
-   for (running_slotOffset=0;running_slotOffset<NUM_EB_SLOTS;running_slotOffset++) {
+   for (running_slotOffset = 0; running_slotOffset < NUM_EB_SLOTS; running_slotOffset++) {
       schedule_addActiveSlot(
          running_slotOffset,      // slot offset
+         CELLTYPE_EB,             // type of slot
+         FALSE,                   // shared
          0,                       // channel offset
-         CELLTYPE_EB              // type of slot
+         BROADCAST_ID             // neighbor
       );
    }
    
    // TXRX slot(s)
-   for (;running_slotOffset<NUM_EB_SLOTS+NUM_TXRX_SLOTS;running_slotOffset++) {
+   for (; running_slotOffset < NUM_EB_SLOTS + NUM_TXRX_SLOTS; running_slotOffset++) {
       schedule_addActiveSlot(
          running_slotOffset,      // slot offset
+         CELLTYPE_TXRX,           // type of slot
+         FALSE,                   // shared
          0,                       // channel offset
-         CELLTYPE_TXRX            // type of slot
+         BROADCAST_ID             // neighbor
       );
    }
+   
+   // Unicast slot (s) -- they come from external agent (file ext_schedule.c)
+   extScheduleEntry_t 	extScheduleEntry;
+   uint8_t              i;
+   for (i = 0; running_slotOffset < NUM_EB_SLOTS + NUM_TXRX_SLOTS + NUM_UNICAST_SLOTS; running_slotOffset++, i++) {
+      /* Get the ext schedule time slot */
+      getExtSchedule(idmanager_getMyShortID(), i, &extScheduleEntry);
+      schedule_addActiveSlot(
+         running_slotOffset,                // slot offset
+         extScheduleEntry.type,             // type of slot
+         FALSE,                             // shared    
+         extScheduleEntry.channelMask,      // channel offset
+         extScheduleEntry.neighbor          // neighbor
+      );
+   } 
 }
 
 //=== from 6top (writing the schedule)
@@ -65,8 +84,10 @@ void schedule_init() {
 */
 owerror_t schedule_addActiveSlot(
       slotOffset_t    slotOffset,
+      cellType_t      type,
+      bool            shared,
       channelOffset_t channelOffset,
-      cellType_t      type
+      uint16_t        neighbor
    ) {
    scheduleEntry_t* slotContainer;
    scheduleEntry_t* previousSlotWalker;
@@ -97,8 +118,10 @@ owerror_t schedule_addActiveSlot(
    
    // fill that schedule entry with parameters passed
    slotContainer->slotOffset                = slotOffset;
-   slotContainer->channelOffset             = channelOffset;
    slotContainer->type                      = type;
+   slotContainer->shared                    = shared;
+   slotContainer->channelOffset             = channelOffset;
+   slotContainer->neighbor                  = neighbor;
    
    // insert in circular list
    if (schedule_vars.currentScheduleEntry==NULL) {

@@ -17,11 +17,13 @@
 
 The superframe repears over time and can be arbitrarly long.
 */
-#define NUM_EB_SLOTS         1
-#define NUM_TXRX_SLOTS       5
-#define SLOTFRAME_LENGTH     13         // this should be ideally a prime number in order to spread EBs in all channels
+#define SLOTFRAME_LENGTH     53         // this should be ideally a prime number in order to spread EBs in all channels
+#define NUM_EB_SLOTS         3
 
-#define MAXACTIVESLOTS       (NUM_EB_SLOTS+NUM_TXRX_SLOTS)
+#define NUM_TXRX_SLOTS       5
+#define NUM_UNICAST_SLOTS    40
+
+#define MAXACTIVESLOTS       (NUM_EB_SLOTS + NUM_TXRX_SLOTS + NUM_UNICAST_SLOTS)
 
 //=========================== typedef =========================================
 
@@ -38,11 +40,20 @@ typedef enum {
 } cellType_t;
 
 typedef struct {
-   slotOffset_t    slotOffset;
-   uint8_t         channelOffset;
    cellType_t      type;
+   uint16_t        channelMask;
+   uint16_t	   neighbor;
+} extScheduleEntry_t;
+
+typedef struct {
+   slotOffset_t    slotOffset;
+   cellType_t      type;
+   bool            shared;   
+   uint8_t         channelOffset;
+   uint16_t        neighbor;   
    uint8_t         numRx;
    uint8_t         numTx;
+   uint8_t         numTxACK;   
    asn_t           lastUsedAsn;
    void*           next;
 } scheduleEntry_t;
@@ -74,10 +85,12 @@ void               schedule_init(void);
 bool               debugPrint_schedule(void);
 
 // from 6top
-owerror_t          schedule_addActiveSlot(
-   slotOffset_t         slotOffset,
-   uint8_t              channelOffset,
-   cellType_t           type
+owerror_t schedule_addActiveSlot(
+   slotOffset_t    slotOffset,
+   cellType_t      type,
+   bool            shared,
+   channelOffset_t channelOffset,
+   uint16_t        neighbor
 );
 
 // from IEEE802154E
@@ -94,6 +107,8 @@ void               schedule_indicateTx(
    asn_t*    asnTimestamp,
    bool      unused
 );
+
+void getExtSchedule(uint16_t addr, uint8_t timeslot_offset, extScheduleEntry_t *extScheduleEntry);
 
 /**
 \}
