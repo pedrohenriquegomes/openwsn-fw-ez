@@ -366,7 +366,7 @@ void neighbors_updateMyDAGrankAndNeighborPreference() {
    uint8_t   i;
    uint16_t  rankIncrease;
    uint32_t  tentativeDAGrank; // 32-bit since is used to sum
-   uint8_t   prefParentIdx;
+   uint8_t   prefParentIdx, oldPrefParentIdx;
    bool      prefParentFound;
    uint32_t  rankIncreaseIntermediary; // stores intermediary results of rankIncrease calculation
    
@@ -386,6 +386,11 @@ void neighbors_updateMyDAGrankAndNeighborPreference() {
    // loop through neighbor table, update myDAGrank
    for (i=0;i<MAXNUMNEIGHBORS;i++) {
       if (neighbors_vars.neighbors[i].used==TRUE) {
+         
+         if (neighbors_vars.neighbors[i].parentPreference == MAXPREFERENCE)
+         {
+            oldPrefParentIdx = i;
+         }
          
          // reset parent preference
          neighbors_vars.neighbors[i].parentPreference=0;
@@ -418,6 +423,14 @@ void neighbors_updateMyDAGrankAndNeighborPreference() {
       neighbors_vars.neighbors[prefParentIdx].parentPreference       = MAXPREFERENCE;
       neighbors_vars.neighbors[prefParentIdx].stableNeighbor         = TRUE;
       neighbors_vars.neighbors[prefParentIdx].switchStabilityCounter = 0;
+   }
+   
+   // output an info saying that we changed the preferred parent
+   if (oldPrefParentIdx != prefParentIdx)
+   {
+      openserial_printInfo(COMPONENT_NEIGHBORS, ERR_NEIGHBORS_CHANGED_PARENT, 
+                            (errorparameter_t)neighbors_vars.neighbors[prefParentIdx].shortID, 
+                            (errorparameter_t)0);
    }
 }
 

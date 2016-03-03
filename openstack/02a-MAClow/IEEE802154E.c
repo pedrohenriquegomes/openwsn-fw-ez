@@ -824,9 +824,9 @@ port_INLINE void activity_ti1ORri1() {
             
       case CELLTYPE_TXRX:
          // try to transmit every AVERAGEDEGREE
-         if (openrandom_get16b()%AVERAGEDEGREE==0) {
+         //if (openrandom_get16b()%AVERAGEDEGREE==0) {
             ieee154e_vars.dataToSend = openqueue_macGetDataPacket();
-         }
+         //}
          
          if (ieee154e_vars.dataToSend != NULL) {
             // transmit

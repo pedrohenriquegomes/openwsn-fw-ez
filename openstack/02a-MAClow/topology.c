@@ -29,19 +29,19 @@ bool topology_isAcceptablePacket(uint16_t shortID) {
    
    returnVal=FALSE;
    switch (idmanager_getMyShortID()) {
-      case 0xed4f:
-         if (shortID == 0x66) {
+      case 0xe5a53:
+         if (shortID == 0x89a5) {
             returnVal=TRUE;
          }
          break;
-      case 0xecf2:
-         if (shortID == 0xdf ||
-             shortID == 0x4f) {
+      case 0x89a5:
+         if (shortID == 0x5a53 ||
+             shortID == 0x13cf) {
             returnVal=TRUE;
          }
          break;
-      case 0xecf5:
-         if (shortID == 0xecf2) {
+      case 0x13cf:
+         if (shortID == 0x89a5) {
             returnVal=TRUE;
          }
          break;   
