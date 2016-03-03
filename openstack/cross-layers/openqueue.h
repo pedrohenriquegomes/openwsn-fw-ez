@@ -42,6 +42,7 @@ OpenQueueEntry_t*  openqueue_sixtopGetSentPacket(void);
 OpenQueueEntry_t*  openqueue_sixtopGetReceivedPacket(void);
 // called by IEEE80215E
 OpenQueueEntry_t*  openqueue_macGetDataPacket(void);
+OpenQueueEntry_t*  openqueue_macGetDataPacketDestination(uint16_t dst);
 OpenQueueEntry_t*  openqueue_macGetEBPacket(void);
 
 /**

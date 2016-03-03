@@ -2,6 +2,7 @@
 #include "openqueue.h"
 #include "openserial.h"
 #include "packetfunctions.h"
+#include "sixtop.h"
 #include "IEEE802154E.h"
 
 //=========================== variables =======================================
@@ -177,6 +178,25 @@ OpenQueueEntry_t* openqueue_macGetDataPacket(void) {
           openqueue_vars.queue[i].creator!=COMPONENT_SIXTOP) {
          ENABLE_INTERRUPTS();
          return &openqueue_vars.queue[i];
+      }
+   }
+   ENABLE_INTERRUPTS();
+   return NULL;
+}
+
+OpenQueueEntry_t* openqueue_macGetDataPacketDestination(uint16_t dst) {
+   uint8_t i;
+   INTERRUPT_DECLARATION();
+   DISABLE_INTERRUPTS();
+   for (i=0;i<QUEUELENGTH;i++) {
+      if (openqueue_vars.queue[i].owner==COMPONENT_SIXTOP_TO_IEEE802154E &&
+          openqueue_vars.queue[i].creator!=COMPONENT_SIXTOP) {
+         // we have to read the destion addr
+         l2_ht *payload = (l2_ht *)(openqueue_vars.queue[i].payload);
+         if (payload->dst == dst) {
+            ENABLE_INTERRUPTS();
+            return &openqueue_vars.queue[i];
+         }
       }
    }
    ENABLE_INTERRUPTS();

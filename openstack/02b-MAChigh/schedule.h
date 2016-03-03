@@ -98,6 +98,7 @@ void               schedule_syncSlotOffset(slotOffset_t targetSlotOffset);
 void               schedule_advanceSlot(void);
 slotOffset_t       schedule_getNextActiveSlotOffset(void);
 cellType_t         schedule_getType(void);
+uint16_t           schedule_getNeighbor(void);
 channelOffset_t    schedule_getChannelOffset(void);
 
 void               schedule_indicateRx(

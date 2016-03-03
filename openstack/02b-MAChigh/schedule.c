@@ -233,6 +233,24 @@ cellType_t schedule_getType() {
 }
 
 /**
+\brief Get the neighbor associated wit the current schedule entry.
+
+\returns The neighbor associated wit the current schedule entry.
+*/
+uint16_t schedule_getNeighbor() {
+   uint16_t returnVal;
+   
+   INTERRUPT_DECLARATION();
+   DISABLE_INTERRUPTS();
+   
+   returnVal = schedule_vars.currentScheduleEntry->neighbor;
+   
+   ENABLE_INTERRUPTS();
+   
+    return returnVal;
+}
+
+/**
 \brief Get the channel offset of the current schedule entry.
 
 \returns The channel offset of the current schedule entry.

@@ -818,8 +818,8 @@ port_INLINE void activity_ti1ORri1() {
          break;
 
       case CELLTYPE_TX:
-         // check if we have a packet to transmit
-         ieee154e_vars.dataToSend = openqueue_macGetDataPacket();
+         // check if we have a packet to transmit to the associated neighbor
+         ieee154e_vars.dataToSend = openqueue_macGetDataPacketDestination(schedule_getNeighbor());
             
       case CELLTYPE_TXRX:
          // try to transmit every AVERAGEDEGREE
