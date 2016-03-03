@@ -48,7 +48,7 @@ void schedule_init() {
       schedule_addActiveSlot(
          running_slotOffset,      // slot offset
          CELLTYPE_TXRX,           // type of slot
-         FALSE,                   // shared
+         TRUE,                    // shared
          0,                       // channel offset
          BROADCAST_ID             // neighbor
       );
@@ -58,15 +58,18 @@ void schedule_init() {
    extScheduleEntry_t 	extScheduleEntry;
    uint8_t              i;
    for (i = 0; running_slotOffset < NUM_EB_SLOTS + NUM_TXRX_SLOTS + NUM_UNICAST_SLOTS; running_slotOffset++, i++) {
-      /* Get the ext schedule time slot */
+      // get the external schedule time slot
       getExtSchedule(idmanager_getMyShortID(), i, &extScheduleEntry);
-      schedule_addActiveSlot(
-         running_slotOffset,                // slot offset
-         extScheduleEntry.type,             // type of slot
-         FALSE,                             // shared    
-         extScheduleEntry.channelMask,      // channel offset
-         extScheduleEntry.neighbor          // neighbor
-      );
+      // only add time slot for the ON cases
+      if (extScheduleEntry.type != CELLTYPE_OFF) {
+         schedule_addActiveSlot(
+            running_slotOffset,                // slot offset
+            extScheduleEntry.type,             // type of slot
+            FALSE,                             // shared    
+            extScheduleEntry.channelMask,      // channel offset
+            extScheduleEntry.neighbor          // neighbor
+         );
+      }
    } 
 }
 

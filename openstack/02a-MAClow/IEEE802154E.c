@@ -728,7 +728,7 @@ port_INLINE void activity_ti1ORri1() {
          return;
       }
    }
-   
+  
    if (ieee154e_vars.slotOffset==ieee154e_vars.nextActiveSlotOffset) {
       // this is the next active slot
       
@@ -747,10 +747,9 @@ port_INLINE void activity_ti1ORri1() {
       openserial_startOutput();
       return;
    }
-   
+
    // if the previous slot took too long, we will not be in the right state
    if (ieee154e_vars.state!=S_SLEEP) {
-      
       // log the error
       openserial_printError(COMPONENT_IEEE802154E,ERR_WRONG_STATE_IN_STARTSLOT,
                             (errorparameter_t)ieee154e_vars.state,
@@ -760,7 +759,7 @@ port_INLINE void activity_ti1ORri1() {
       endSlot();
       return;
    }
-
+   
    // stop using serial
    openserial_stop();
    // assuming that there is nothing to send
@@ -843,6 +842,13 @@ port_INLINE void activity_ti1ORri1() {
             // arm tt1
             radiotimer_schedule(DURATION_tt1);
             
+            break;
+         }
+         
+         if (cellType == CELLTYPE_TX) {
+            // abort as we are not supposed to RX
+              
+            endSlot();
             break;
          }
          
