@@ -2513,12 +2513,6 @@
         <name>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\adaptive_sync.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\IEEE802154.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\IEEE802154.h</name>
-      </file>
-      <file>
         <name>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\IEEE802154E.c</name>
       </file>
       <file>
@@ -2538,12 +2532,6 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\..\openstack\02b-MAChigh\neighbors.h</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\..\..\openstack\02b-MAChigh\processIE.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\..\..\openstack\02b-MAChigh\processIE.h</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\..\openstack\02b-MAChigh\schedule.c</name>

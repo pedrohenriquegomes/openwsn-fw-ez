@@ -181,7 +181,7 @@
         <debug>1</debug>
         <option>
           <name>CCDefines</name>
-          <state></state>
+          <state>FORCETOPOLOGY</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -321,10 +321,8 @@
           <state>$PROJ_DIR$\..\..\..\drivers\common\</state>
           <state>$PROJ_DIR$\..\..\..\inc\</state>
           <state>$PROJ_DIR$\..\..\..\openstack\</state>
-          <state>$PROJ_DIR$\..\..\..\openstack\OpenwsnHeads\</state>
           <state>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\</state>
           <state>$PROJ_DIR$\..\..\..\openstack\02b-MAChigh\</state>
-          <state>$PROJ_DIR$\..\..\..\openstack\03a-IPHC\</state>
           <state>$PROJ_DIR$\..\..\..\openstack\cross-layers\</state>
           <state>$PROJ_DIR$\..\..\..\openapps\</state>
           <state>$PROJ_DIR$\..\..\..\openapps\uinject\</state>
@@ -2352,12 +2350,6 @@
         <name>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\adaptive_sync.h</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\IEEE802154.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\IEEE802154.h</name>
-      </file>
-      <file>
         <name>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\IEEE802154E.c</name>
       </file>
       <file>
@@ -2377,12 +2369,6 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\..\openstack\02b-MAChigh\neighbors.h</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\..\..\openstack\02b-MAChigh\processIE.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\..\..\openstack\02b-MAChigh\processIE.h</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\..\openstack\02b-MAChigh\schedule.c</name>
