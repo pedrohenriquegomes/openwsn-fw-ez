@@ -243,9 +243,9 @@ enum {
    ERR_SECURITY                        = 0x3b, // security error on frameType {0}, code location {1}
    ERR_NEIGHBORS_CHANGED_PARENT        = 0x3c, // preferred parent changed to {0}
    // uinject
-   ERR_UINJECT_SND                     = 0x3d, // uinject sending pkt to {0}
-   ERR_UINJECT_RCV                     = 0x3e, // uinject received pkt from {0}, delay {1}
-   ERR_UINJECT_FWD                     = 0x3f, // uinject received pkt from {0} to {1}
+   ERR_UINJECT_SND                     = 0x3d, // uinject snd pkt to {0}
+   ERR_UINJECT_RCV                     = 0x3e, // uinject fwd pkt from {0}, delay {1}
+   ERR_UINJECT_FWD                     = 0x3f, // uinject rcv pkt from {0} to {1}
    
 };
 

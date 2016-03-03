@@ -1167,7 +1167,8 @@ port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
       
       // break if destination and source are not correct (we use ACK header since it is the same for data_ht)
       if (payload->dst != idmanager_getMyShortID() || 
-          payload->src != ((l2_ht*)(ieee154e_vars.dataToSend->payload))->dst ) {
+          payload->src != ((l2_ht*)(ieee154e_vars.dataToSend->payload))->dst ||
+          payload->dsn != ((l2_ht*)(ieee154e_vars.dataToSend->payload))->dsn ) {
          // break from the do-while loop and execute the clean-up code below
          break;
       }
@@ -1443,6 +1444,7 @@ port_INLINE void activity_ri6() {
    packetfunctions_reserveHeaderSize(ieee154e_vars.ackToSend,sizeof(ack_ht));
    payload       = (l2_ht*)(ieee154e_vars.ackToSend->payload);
    payload->type = LONGTYPE_ACK;
+   payload->dsn  = ((l2_ht*)(ieee154e_vars.dataReceived->payload))->dsn;
    payload->src  = idmanager_getMyShortID();
    payload->dst  = ((l2_ht*)(ieee154e_vars.dataReceived->payload))->src;
    
