@@ -242,8 +242,9 @@ enum {
    ERR_PACKET_SYNC                     = 0x3a, // synchronized when received a packet
    ERR_SECURITY                        = 0x3b, // security error on frameType {0}, code location {1}
    // uinject
-   ERR_UINJECT_FWD                     = 0x3C, // uinject app forwarding pkt to {0}
-   ERR_UINJECT_RCV                     = 0x3D, // uinject app received pkt from {0}
+   ERR_UINJECT_SND                     = 0x3C, // uinject sending pkt to {0}
+   ERR_UINJECT_RCV                     = 0x3D, // uinject received pkt from {0}, delay {1}
+   ERR_UINJECT_FWD                     = 0x3E, // uinject received pkt from {0} to {1}
 };
 
 //=========================== typedef =========================================

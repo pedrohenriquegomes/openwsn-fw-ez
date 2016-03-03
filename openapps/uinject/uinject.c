@@ -77,7 +77,8 @@ void uinject_receive(OpenQueueEntry_t* pkt) {
       fwd_payload->asn3         = pkt_payload->asn3;
    
       openserial_printError(COMPONENT_UINJECT, ERR_UINJECT_FWD, 
-                            (errorparameter_t)0, (errorparameter_t)0);
+                            (errorparameter_t)pkt_payload->l3_src, 
+                            (errorparameter_t)pkt_payload->l3_dst);
       
       if ((sixtop_send(fwd))==E_FAIL) {
          openqueue_freePacketBuffer(fwd);
@@ -96,7 +97,8 @@ void uinject_receive(OpenQueueEntry_t* pkt) {
       uint32_t asnDiff = ieee154e_asnDiff((asn_t *)asn);
        
       openserial_printError(COMPONENT_UINJECT, ERR_UINJECT_RCV, 
-                           (errorparameter_t)asnDiff, (errorparameter_t)0);
+                           (errorparameter_t)pkt_payload->l3_src, 
+                           (errorparameter_t)asnDiff);
    }
    
    // pkt will be destroyed by sixtop
@@ -161,6 +163,9 @@ void uinject_task_cb() {
    payload->asn2        = curAsn[2];
    payload->asn3        = curAsn[3];
             
+   openserial_printError(COMPONENT_UINJECT, ERR_UINJECT_SND, 
+                        (errorparameter_t)payload->l3_dst, (errorparameter_t)payload->counter);
+   
    if ((sixtop_send(pkt))==E_FAIL) {
       openqueue_freePacketBuffer(pkt);
    }
