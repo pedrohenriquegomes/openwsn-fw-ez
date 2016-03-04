@@ -69,6 +69,7 @@ END_PACK
 BEGIN_PACK
 typedef struct {                                 // always written big endian, i.e. MSB in addr[0]
    l2_ht     l2_hdr;
+   uint16_t  blacklist;
 } ack_ht;
 END_PACK
 

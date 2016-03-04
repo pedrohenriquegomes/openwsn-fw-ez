@@ -43,6 +43,140 @@ void neighbors_init() {
    }
 }
 
+//===== blacklist
+
+// this function is executed when we are child and will send a data packet and will wait for the blacklist from our parent
+// we need to check if we already have DSN in our list. If so, do nothing. If not, delete the entry not in use and create a new one
+// with DSN and empty blacklist
+void 		neighbors_updateBlacklistTxData(uint16_t address, uint8_t dsn) {
+   uint8_t i, j;
+   
+   // iterate through neighbor table
+   for (i=0;i<MAXNUMNEIGHBORS;i++) {
+      if (isThisRowMatching(address,i)) {
+
+         INTERRUPT_DECLARATION();
+         DISABLE_INTERRUPTS();
+
+         // if we dont have a blacklist for our DSN
+         if (neighbors_vars.neighbors[i].blacklists[0].dsn != dsn &&
+            neighbors_vars.neighbors[i].blacklists[1].dsn != dsn) {
+          
+            // check which is the current blacklist being used
+            if (neighbors_vars.neighbors[i].oldBlacklistIdx == 0) j = 0;
+            else j = 1;
+        
+            neighbors_vars.neighbors[i].blacklists[j].dsn = dsn;
+            neighbors_vars.neighbors[i].blacklists[j].channelMap = 0;
+         
+            // now we update which is the old blacklist
+            if (j == 0) {
+               neighbors_vars.neighbors[i].oldBlacklistIdx = 1;
+            }
+            else {
+               neighbors_vars.neighbors[i].oldBlacklistIdx = 0;
+            }
+         }
+      
+         ENABLE_INTERRUPTS();
+         break;
+      }
+   }
+}
+
+// this function is executed when we receive a data packet and will send our most recent blacklist
+// into the next ACK (that we are sending)
+// we need to check if we alredy have DSN in our list. If so, update with the most recent blacklist
+// if not, delete the oldest entry and create a new one (with DSN and the most recent local blacklist)
+void neighbors_updateBlacklistRxData(uint16_t address, uint8_t dsn) {
+   uint8_t i,j;
+  
+   // iterate through neighbor table
+   for (i=0;i<MAXNUMNEIGHBORS;i++) {
+      if (isThisRowMatching(address,i)) {
+      
+         INTERRUPT_DECLARATION();
+         DISABLE_INTERRUPTS();
+      
+         if (neighbors_vars.neighbors[i].blacklists[0].dsn == dsn) {
+            // first entry has DSN  
+            neighbors_vars.neighbors[i].blacklists[0].channelMap = neighbors_vars.neighbors[i].currentBlacklist;
+         }
+         else if (neighbors_vars.neighbors[i].blacklists[1].dsn == dsn) {
+            // second entry has DSN
+            neighbors_vars.neighbors[i].blacklists[1].channelMap = neighbors_vars.neighbors[i].currentBlacklist;
+         }
+         else {
+            // we do not have an entry with DSN. lets find the oldest entry
+            if (neighbors_vars.neighbors[i].oldBlacklistIdx) j = 0;
+            else j = 1;
+        
+            neighbors_vars.neighbors[i].blacklists[j].dsn = dsn;
+            neighbors_vars.neighbors[i].blacklists[j].channelMap = neighbors_vars.neighbors[i].currentBlacklist;
+        
+            if (j== 0) {
+               neighbors_vars.neighbors[i].oldBlacklistIdx = 1;
+            }
+            else {
+               neighbors_vars.neighbors[i].oldBlacklistIdx = 0;
+            }
+         }
+      
+         ENABLE_INTERRUPTS();
+         break;
+      }
+   }
+}
+
+// this function is executed when we receive an ACK packet and need to update the neighbors blacklist
+// we should already have an entry with the corresponding DSN
+void neighbors_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t blacklist) {
+   uint8_t i;
+  
+   // Iterate through neighbor table
+   for (i=0;i<MAXNUMNEIGHBORS;i++) {
+      if (isThisRowMatching(address,i)) {
+      
+         INTERRUPT_DECLARATION();
+         DISABLE_INTERRUPTS();
+      
+         // found the entries for address. One entry should have DSN and it need to be updated
+         if (neighbors_vars.neighbors[i].blacklists[0].dsn == dsn) {
+            neighbors_vars.neighbors[i].blacklists[0].channelMap = blacklist;
+         }
+         else if (neighbors_vars.neighbors[i].blacklists[1].dsn == dsn) {
+            neighbors_vars.neighbors[i].blacklists[1].channelMap = blacklist;
+         }
+         else {
+            openserial_printError(COMPONENT_NEIGHBORS,ERR_WRONG_DSN,
+                                 (errorparameter_t)dsn,
+                                 (errorparameter_t)4);
+         }
+      
+         openserial_printInfo(COMPONENT_NEIGHBORS, ERR_NEW_BLACKLIST,
+                              (errorparameter_t)blacklist,
+                              0);
+
+         ENABLE_INTERRUPTS();
+         break;
+      }
+   }
+}
+
+uint16_t neighbors_getBlacklist(uint16_t address) {
+   uint8_t i;
+  
+   // iterate through neighbor table
+   for (i=0;i<MAXNUMNEIGHBORS;i++) {
+      if (isThisRowMatching(address, i)) {
+         uint8_t blacklistIdx = neighbors_vars.neighbors[i].oldBlacklistIdx;
+         return neighbors_vars.neighbors[i].blacklists[blacklistIdx].channelMap;
+      }
+   }
+   
+   return 0;
+}
+
 //===== getters
 
 /**

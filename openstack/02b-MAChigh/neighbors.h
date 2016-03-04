@@ -27,18 +27,30 @@
 
 BEGIN_PACK
 typedef struct {
-   bool            used;
-   uint8_t         parentPreference;
-   bool            stableNeighbor;
-   uint8_t         switchStabilityCounter;
-   uint16_t        shortID;
-   dagrank_t       DAGrank;
-   int8_t          rssi;
-   uint8_t         numRx;
-   uint8_t         numTx;
-   uint8_t         numTxACK;
-   uint8_t         numWraps; //number of times the tx counter wraps. can be removed if memory is a restriction. also check openvisualizer then.
-   asn_t           asn;
+   uint8_t         dsn;
+   uint16_t        channelMap; // bitmap of 0s (good channels) and 1s (bad channels)
+} blacklistEntry_t;
+END_PACK
+
+BEGIN_PACK
+typedef struct {
+   bool                 used;
+   uint8_t              parentPreference;
+   bool                 stableNeighbor;
+   uint8_t              switchStabilityCounter;
+   uint16_t             shortID;
+   dagrank_t            DAGrank;
+   int8_t               rssi;
+   uint8_t              numRx;
+   uint8_t              numTx;
+   uint8_t              numTxACK;
+   uint8_t              numWraps;    //number of times the tx counter wraps. can be removed if memory is a restriction. also check openvisualizer then.
+   asn_t                asn;
+   // there are two blacklists because we need have to keep the old while we are negotiating a new one with the neighbor. 
+   // the index below says which is the blacklist with the oldest DSN 
+   blacklistEntry_t     blacklists[2];
+   uint8_t              oldBlacklistIdx;     // either 0 or 1
+   uint16_t             currentBlacklist;
 } neighborRow_t;
 END_PACK
 
@@ -74,6 +86,13 @@ void          neighbors_init(void);
 // getters
 dagrank_t     neighbors_getMyDAGrank(void);
 uint8_t       neighbors_getNumNeighbors(void);
+
+// blacklist
+void 	      neighbors_updateBlacklistTxData(uint16_t address, uint8_t dsn);
+void 	      neighbors_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t blacklist);
+void 	      neighbors_updateBlacklistRxData(uint16_t address, uint8_t dsn);
+uint16_t      neighbors_getUsedBlacklist(uint16_t address, bool oldest);
+uint16_t      neighbors_getBlacklist(uint16_t address);
 
 // interrogators
 bool          neighbors_isStableNeighbor(uint16_t shortID);
