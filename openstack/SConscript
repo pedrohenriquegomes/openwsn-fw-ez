@@ -14,6 +14,7 @@ sources_c = [
     #=== 02b-MAChigh
     os.path.join('02b-MAChigh','neighbors.c'),
     os.path.join('02b-MAChigh','schedule.c'),
+	os.path.join('02b-MAChigh','ext_schedule.c'),
     os.path.join('02b-MAChigh','sixtop.c'),
     #=== cross-layers
     os.path.join('cross-layers','idmanager.c'),
