@@ -46,11 +46,12 @@ typedef struct {
    uint8_t              numTxACK;
    uint8_t              numWraps;    //number of times the tx counter wraps. can be removed if memory is a restriction. also check openvisualizer then.
    asn_t                asn;
-   // there are two blacklists because we need have to keep the old while we are negotiating a new one with the neighbor. 
-   // the index below says which is the blacklist with the oldest DSN 
-   blacklistEntry_t     blacklists[2];
-   uint8_t              oldBlacklistIdx;     // either 0 or 1
-   uint16_t             currentBlacklist;
+   uint16_t             currentBlacklist;       // the current local blacklist for that neighbor. this is not necessarily the blacklist that we are using
+   // since we may have not yet negotiated with the neighbor. this is the blacklist that should be updated every sucessful or failed packet reception
+   blacklistEntry_t     usedBlacklists[2];      // these are the blacklists currently being used. we need two because we only switch to the newest when
+   // we get a confirmation from the neighbor. the confirmation comes when we receive a packet with newer DSN
+   uint8_t              oldestBlacklistIdx;        // either 0 or 1 (index of the oldest blacklist).
+   
 } neighborRow_t;
 END_PACK
 
@@ -92,7 +93,8 @@ void 	      neighbors_updateBlacklistTxData(uint16_t address, uint8_t dsn);
 void 	      neighbors_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t blacklist);
 void 	      neighbors_updateBlacklistRxData(uint16_t address, uint8_t dsn);
 uint16_t      neighbors_getUsedBlacklist(uint16_t address, bool oldest);
-uint16_t      neighbors_getBlacklist(uint16_t address);
+uint16_t      neighbors_getCurrentBlacklist(uint16_t address);
+void          neighbors_updateCurrentBlacklist(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy);
 
 // interrogators
 bool          neighbors_isStableNeighbor(uint16_t shortID);

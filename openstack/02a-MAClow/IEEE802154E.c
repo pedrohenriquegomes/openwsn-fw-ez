@@ -107,7 +107,7 @@ void ieee154e_init() {
    memset(&ieee154e_vars,0,sizeof(ieee154e_vars_t));
    memset(&ieee154e_dbg,0,sizeof(ieee154e_dbg_t));
    
-   ieee154e_vars.singleChannel     = SYNCHRONIZING_CHANNEL;
+   ieee154e_vars.singleChannel     = 0;
    ieee154e_vars.nextChannelEB     = SYNCHRONIZING_CHANNEL - 11;
    
    ieee154e_vars.isSecurityEnabled = FALSE;
@@ -877,6 +877,7 @@ port_INLINE void activity_ti1ORri1() {
 }
 
 port_INLINE void activity_ti2() {
+   l2_ht        *payload;
    
    // change state
    changeState(S_TXDATAPREPARE);
@@ -892,10 +893,7 @@ port_INLINE void activity_ti2() {
    
    if (schedule_getType() == CELLTYPE_TX) {
       // if I am transmitting in a dedicated slot, get the blacklist
-      blacklist = neighbors_getBlacklist(schedule_getNeighbor());
-      
-      // update the entry before transmitting
-      neighbors_updateBlacklistTxData(schedule_getNeighbor(), ieee154e_vars.dataToSend->l2_dsn);
+      blacklist = neighbors_getUsedBlacklist(schedule_getNeighbor(), TRUE);
    }
    else {
       // the slot is shared, do not use the blacklist
@@ -914,6 +912,13 @@ port_INLINE void activity_ti2() {
    
    // enable the radio in Tx mode. This does not send the packet.
    radio_txEnable();
+
+   payload = (l2_ht *)ieee154e_vars.localCopyForTransmission.payload;
+   
+   if (isPktBroadcast(ieee154e_vars.dataToSend) == FALSE && neighbors_isPreferredParent(payload->dst)) {
+      // I am not sending a broadcast and I am a child, store the DSN in the neighbor list   
+      neighbors_updateBlacklistTxData(payload->dst, payload->dsn);
+   }
    
    ieee154e_vars.radioOnInit=radio_getTimerValue();
    ieee154e_vars.radioOnThisSlot=TRUE;
@@ -982,7 +987,6 @@ port_INLINE void activity_tie3() {
 
 port_INLINE void activity_ti5(PORT_RADIOTIMER_WIDTH capturedTime) {
    bool         listenForAck;
-   eb_ht        *eb_payload;
    
    // change state
    changeState(S_RXACKOFFSET);
@@ -998,11 +1002,8 @@ port_INLINE void activity_ti5(PORT_RADIOTIMER_WIDTH capturedTime) {
    // record the captured time
    ieee154e_vars.lastCapturedTime = capturedTime;
    
-   // parse the packet as an EB
-   eb_payload = (eb_ht*)(ieee154e_vars.dataToSend->payload);
-   
    // decides whether to listen for an ACK
-   if (eb_payload->l2_hdr.dst == BROADCAST_ID) {
+   if (isPktBroadcast(ieee154e_vars.dataToSend)) {
       listenForAck = FALSE;
    } else {
       listenForAck = TRUE;
@@ -1028,19 +1029,19 @@ port_INLINE void activity_ti6() {
    changeState(S_RXACKPREPARE);
    
    // check if we are going to use a blacklist
-   uint16_t blacklist;
+   //uint16_t blacklist;
    
-   if (schedule_getType() == CELLTYPE_TX) {
+   //if (schedule_getType() == CELLTYPE_TX) {
       // if I am transmitting in a dedicated slot, get the blacklist
-      blacklist = neighbors_getBlacklist(schedule_getNeighbor());
-   }
-   else {
+      //blacklist = neighbors_getUsedBlacklist(schedule_getNeighbor(), TRUE);
+   //}
+   //else {
       // the slot is shared, do not use the blacklist
-      blacklist = 0;
-   }
+      //blacklist = 0;
+   //}
    
    // calculate the frequency to transmit on
-   ieee154e_vars.freq = calculateFrequencyWithBlacklist(schedule_getChannelOffset(), blacklist);
+   //ieee154e_vars.freq = calculateFrequencyWithBlacklist(schedule_getChannelOffset(), blacklist);
    
    // configure the radio for that frequency
    radio_setFrequency(ieee154e_vars.freq);
@@ -1245,7 +1246,7 @@ port_INLINE void activity_ri2() {
    
    if (schedule_getType() == CELLTYPE_RX) {
       // if I am transmitting in a dedicated slot, get the blacklist
-      blacklist = neighbors_getBlacklist(schedule_getNeighbor());
+      blacklist = neighbors_getUsedBlacklist(schedule_getNeighbor(), TRUE);
    }
    else {
       // the slot is shared, do not use the blacklist
@@ -1293,6 +1294,11 @@ port_INLINE void activity_ri3() {
 }
 
 port_INLINE void activity_rie2() {
+   // update the blacklist considering a failed reception - But how do I know that the packet was transmitted?
+   //if (schedule_getType() == CELLTYPE_RX) {
+   //   neighbors_updateCurrentBlacklist(schedule_getNeighbor(), E_FAIL, ieee154e_vars.freq, ieee154e_vars.dataReceived->l1_rssi);
+   //}
+   
    // abort
    endSlot();
 }
@@ -1320,7 +1326,7 @@ port_INLINE void activity_rie3() {
    openserial_printError(COMPONENT_IEEE802154E,ERR_WDDATADURATION_OVERFLOWS,
                          (errorparameter_t)ieee154e_vars.state,
                          (errorparameter_t)ieee154e_vars.slotOffset);
-   
+  
    // abort
    endSlot();
 }
@@ -1410,7 +1416,10 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
       
       // record the captured time
       ieee154e_vars.lastCapturedTime = capturedTime;
-            
+      
+      // update the blacklist considering a sucessful reception
+      neighbors_updateCurrentBlacklist(eb_payload->l2_hdr.src, E_SUCCESS, ieee154e_vars.freq, ieee154e_vars.dataReceived->l1_rssi);
+        
       // ack requested
       if(eb_payload->l2_hdr.dst != BROADCAST_ID) {
         
@@ -1467,7 +1476,7 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
 }
 
 port_INLINE void activity_ri6() {
-   l2_ht       *payload;
+   ack_ht       *ack_payload;
    
    // change state
    changeState(S_TXACKPREPARE);
@@ -1501,29 +1510,32 @@ port_INLINE void activity_ri6() {
    
    // fill in ACK
    packetfunctions_reserveHeaderSize(ieee154e_vars.ackToSend,sizeof(ack_ht));
-   payload       = (l2_ht*)(ieee154e_vars.ackToSend->payload);
-   payload->type = LONGTYPE_ACK;
-   payload->dsn  = ((l2_ht*)(ieee154e_vars.dataReceived->payload))->dsn;
-   payload->src  = idmanager_getMyShortID();
-   payload->dst  = ((l2_ht*)(ieee154e_vars.dataReceived->payload))->src;
+   ack_payload                  = (ack_ht*)(ieee154e_vars.ackToSend->payload);
+   ack_payload->l2_hdr.type     = LONGTYPE_ACK;
+   ack_payload->l2_hdr.dsn      = ((l2_ht*)(ieee154e_vars.dataReceived->payload))->dsn;
+   ack_payload->l2_hdr.src      = idmanager_getMyShortID();
+   ack_payload->l2_hdr.dst      = ((l2_ht*)(ieee154e_vars.dataReceived->payload))->src;
+   
+   // fill in the blacklist
+   ack_payload->blacklist       = neighbors_getUsedBlacklist(ack_payload->l2_hdr.dst, FALSE);
    
    // space for 2-byte CRC
    packetfunctions_reserveFooterSize(ieee154e_vars.ackToSend,2);
   
    // check if we are going to use a blacklist
-   uint16_t blacklist;
+   //uint16_t blacklist;
    
-   if (schedule_getType() == CELLTYPE_RX) {
+   //if (schedule_getType() == CELLTYPE_RX) {
       // if I am transmitting in a dedicated slot, get the blacklist
-      blacklist = neighbors_getBlacklist(schedule_getNeighbor());
-   }
-   else {
+      //blacklist = neighbors_getUsedBlacklist(schedule_getNeighbor(), TRUE);
+   //}
+   //else {
       // the slot is shared, do not use the blacklist
-      blacklist = 0;
-   }
+      //blacklist = 0;
+   //}
    
    // calculate the frequency to transmit on
-   ieee154e_vars.freq = calculateFrequencyWithBlacklist(schedule_getChannelOffset(), blacklist);
+   //ieee154e_vars.freq = calculateFrequencyWithBlacklist(schedule_getChannelOffset(), blacklist);
    
    // configure the radio for that frequency
    radio_setFrequency(ieee154e_vars.freq);
@@ -1672,6 +1684,18 @@ port_INLINE uint16_t ieee154e_getTimeCorrection() {
     returnVal = (uint16_t)(ieee154e_vars.timeCorrection);
     
     return returnVal;
+}
+
+port_INLINE uint8_t ieee154e_getEnergy(uint8_t type) {
+    
+   if (type == ENERGY_RSSI && ieee154e_vars.dataReceived != NULL) {
+      return ieee154e_vars.dataReceived->l1_rssi;
+   }
+   else {
+      // TO-DO find out how to read the noise
+     
+      return 0;
+   }
 }
 
 port_INLINE void asnStoreFromEB(uint8_t* asn) {
@@ -1886,8 +1910,13 @@ uint8_t calculateFrequencyWithBlacklist(uint16_t channelMap, uint16_t blacklist)
       }
    }
   
-   // We only reach here if channelMap is equal to 0 (case of RX/TX slots)
+   // We only reach here if channelMap is equal to 0 (case of RX/TX and EB slots)
    return calculateFrequency(channelMap);
+}
+
+bool     isPktBroadcast(OpenQueueEntry_t* pkt) {
+  
+   return (((l2_ht *)(pkt->payload))->dst == BROADCAST_ID);
 }
 
 /**

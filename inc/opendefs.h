@@ -242,14 +242,15 @@ enum {
    ERR_PACKET_SYNC                     = 0x3a, // synchronized when received a packet
    ERR_SECURITY                        = 0x3b, // security error on frameType {0}, code location {1}
    ERR_NEIGHBORS_CHANGED_PARENT        = 0x3c, // preferred parent changed to {0}
+   ERR_NEIGHBORS_NO_FOUND              = 0x3d, // no neighbor found, code location {0}
    // uinject
-   ERR_UINJECT_SND                     = 0x3d, // uinject snd pkt to {0}
-   ERR_UINJECT_RCV                     = 0x3e, // uinject fwd pkt from {0}, delay {1}
-   ERR_UINJECT_FWD                     = 0x3f, // uinject rcv pkt from {0} to {1}
+   ERR_UINJECT_SND                     = 0x40, // uinject snd pkt to {0}
+   ERR_UINJECT_RCV                     = 0x41, // uinject rcv pkt from {0}, delay {1}
+   ERR_UINJECT_FWD                     = 0x42, // uinject fwd pkt from {0} to {1}
    // blacklist
-   ERR_WRONG_DSN		       = 0x40, // wrog dsn {0}, code location {1}
-   ERR_NEW_BLACKLIST                   = 0x41, // new blacklist from parent: {0}   
-   ERR_PACKET_LOST                     = 0x42, // packet lost at slotoffset {0}, frequency {1}
+   ERR_WRONG_DSN		       = 0x50, // wrog dsn {0}, code location {1}
+   ERR_NEW_BLACKLIST                   = 0x51, // new blacklist from parent: {0}   
+   ERR_PACKET_LOST                     = 0x52, // packet lost at slotoffset {0}, frequency {1}
 };
 
 //=========================== typedef =========================================

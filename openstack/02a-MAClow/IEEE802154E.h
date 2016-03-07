@@ -23,9 +23,12 @@ static const uint8_t chTemplate_eb[] = {
    //0,4,9,15                            // channels to send EBs on (-11, i.e. 0=channel 11) (0,4,9,15)==(11,15,20,26)
   14
 };
-#define EB_NUMCHANS                 1  // number of channels EBs are sent on
-#define EB_SLOWHOPPING_PERIOD     500  // how often a node changes the channel it listens on for EBs, in slots (500=7500ms)
 //=========================== define ==========================================
+
+#define EB_NUMCHANS               1  // number of channels EBs are sent on
+#define EB_SLOWHOPPING_PERIOD     500  // how often a node changes the channel it listens on for EBs, in slots (500=7500ms)
+
+#define DEFAULT_BLACKLIST         0xFF00
 
 #define SHORTTYPE_UNDEFINED       0xff
 #define SHORTTYPE_BEACON          0xb0
@@ -44,7 +47,7 @@ static const uint8_t chTemplate_eb[] = {
 #define US_PER_TICK                 30 // number of us per 32kHz clock tick
 #define EBPERIOD                  1000 // in ms, EB sending period
 #define MAXKAPERIOD                200 // in slots: @15ms per slot -> ~30 seconds. Max value used by adaptive synchronization.
-#define DESYNCTIMEOUT             2169 // in slots: 2169@4.61ms per slot -> ~10 seconds
+#define DESYNCTIMEOUT              800 // in slots: 2169@15ms per slot -> ~10 seconds
 #define LIMITLARGETIMECORRECTION     5 // threshold number of ticks to declare a timeCorrection "large"
 #define LENGTH_IEEE154_MAX         128 // max length of a valid radio packet  
 #define DUTY_CYCLE_WINDOW_LIMIT    (0xFFFFFFFF>>1) // limit of the dutycycle window
@@ -184,6 +187,11 @@ enum ieee154e_linkOption_enum {
    FLAG_TIMEKEEPING_S        = 3,   
 };
 
+enum {
+   ENERGY_RSSI               = 0,
+   ENERGY_NOISE              = 1,
+};
+
 // FSM timer durations (combinations of atomic durations)
 // TX
 #define DURATION_tt1 ieee154e_vars.lastCapturedTime+TsTxOffset-delayTx-maxTxDataPrepare
@@ -300,6 +308,8 @@ void               ieee154e_setIsAckEnabled(bool isEnabled);
 void               ieee154e_setSingleChannel(uint8_t channel);
 
 uint16_t           ieee154e_getTimeCorrection(void);
+uint8_t            ieee154e_getEnergy(uint8_t type);
+
 // events
 void               ieee154e_startOfFrame(PORT_RADIOTIMER_WIDTH capturedTime);
 void               ieee154e_endOfFrame(PORT_RADIOTIMER_WIDTH capturedTime);
