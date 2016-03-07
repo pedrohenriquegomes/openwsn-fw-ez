@@ -20,9 +20,11 @@ static const uint8_t chTemplate_default[] = {
 };
 
 static const uint8_t chTemplate_eb[] = {
-   15,9,4,0                            // channels to send EBs on (-11, i.e. 0=channel 11) (0,4,9,15)==(11,15,20,26)
+//   15,9,4,0                            // channels to send EBs on (-11, i.e. 0=channel 11) (0,4,9,15)==(11,15,20,26)
+     15
 };
-#define EB_NUMCHANS                 4  // number of channels EBs are sent on
+
+#define EB_NUMCHANS                 1  // number of channels EBs are sent on
 #define EB_SLOWHOPPING_PERIOD     500  // how often a node changes the channel it listens on for EBs, in slots (500=7500ms)
 //=========================== define ==========================================
 
@@ -43,7 +45,7 @@ static const uint8_t chTemplate_eb[] = {
 #define US_PER_TICK                 30 // number of us per 32kHz clock tick
 #define EBPERIOD                  1000 // in ms, EB sending period
 #define MAXKAPERIOD                200 // in slots: @15ms per slot -> ~30 seconds. Max value used by adaptive synchronization.
-#define DESYNCTIMEOUT             2169 // in slots: 2169@4.61ms per slot -> ~10 seconds
+#define DESYNCTIMEOUT             1000 // in slots: 1000@15ms per slot -> ~15 seconds
 #define LIMITLARGETIMECORRECTION     5 // threshold number of ticks to declare a timeCorrection "large"
 #define LENGTH_IEEE154_MAX         128 // max length of a valid radio packet  
 #define DUTY_CYCLE_WINDOW_LIMIT    (0xFFFFFFFF>>1) // limit of the dutycycle window
