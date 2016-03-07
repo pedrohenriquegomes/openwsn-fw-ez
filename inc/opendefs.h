@@ -250,7 +250,8 @@ enum {
    // blacklist
    ERR_WRONG_DSN		       = 0x50, // wrog dsn {0}, code location {1}
    ERR_NEW_BLACKLIST                   = 0x51, // new blacklist from parent: {0}   
-   ERR_PACKET_LOST                     = 0x52, // packet lost at slotoffset {0}, frequency {1}
+   ERR_RCV_BLACKLIST                   = 0x52, // packet received dsn {0} blacklist {1}
+   ERR_SND_BLACKLIST                   = 0x53, // packet sent dsn {0} blacklist {1}
 };
 
 //=========================== typedef =========================================

@@ -918,6 +918,10 @@ port_INLINE void activity_ti2() {
    if (isPktBroadcast(ieee154e_vars.dataToSend) == FALSE && neighbors_isPreferredParent(payload->dst)) {
       // I am not sending a broadcast and I am a child, store the DSN in the neighbor list   
       neighbors_updateBlacklistTxData(payload->dst, payload->dsn);
+      
+      openserial_printError(COMPONENT_IEEE802154E,ERR_SND_BLACKLIST,
+                           (errorparameter_t)payload->dsn,
+                           (errorparameter_t)blacklist);
    }
    
    ieee154e_vars.radioOnInit=radio_getTimerValue();
@@ -1259,6 +1263,9 @@ port_INLINE void activity_ri2() {
    // configure the radio for that frequency
    radio_setFrequency(ieee154e_vars.freq);
    
+   // store the used blacklist
+   ieee154e_vars.lastBlacklist = blacklist;
+   
    // enable the radio in Rx mode. The radio does not actively listen yet.
    radio_rxEnable();
    
@@ -1430,6 +1437,10 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
             if (!neighbors_isPreferredParent(eb_payload->l2_hdr.src))
             {
                 neighbors_updateBlacklistRxData(eb_payload->l2_hdr.src, eb_payload->l2_hdr.dsn);
+                
+                openserial_printError(COMPONENT_IEEE802154E,ERR_RCV_BLACKLIST,
+                     (errorparameter_t)eb_payload->l2_hdr.dsn,
+                     (errorparameter_t)ieee154e_vars.lastBlacklist);
             }
             
             // arm rt5

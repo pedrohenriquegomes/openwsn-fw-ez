@@ -47,7 +47,7 @@ static const uint8_t chTemplate_eb[] = {
 #define US_PER_TICK                 30 // number of us per 32kHz clock tick
 #define EBPERIOD                  1000 // in ms, EB sending period
 #define MAXKAPERIOD                200 // in slots: @15ms per slot -> ~30 seconds. Max value used by adaptive synchronization.
-#define DESYNCTIMEOUT              800 // in slots: 2169@15ms per slot -> ~10 seconds
+#define DESYNCTIMEOUT             1600 // in slots: 2169@15ms per slot -> ~20 seconds
 #define LIMITLARGETIMECORRECTION     5 // threshold number of ticks to declare a timeCorrection "large"
 #define LENGTH_IEEE154_MAX         128 // max length of a valid radio packet  
 #define DUTY_CYCLE_WINDOW_LIMIT    (0xFFFFFFFF>>1) // limit of the dutycycle window
@@ -266,6 +266,8 @@ typedef struct {
    int16_t                   timeCorrection;          // store the timeCorrection, prepend and retrieve it inside of frame header
    uint16_t                  syncSlotLength;
    uint16_t                  joinChannelChangingCounter;
+   // blacklist
+   uint16_t                  lastBlacklist;           // last used blacklist
 } ieee154e_vars_t;
 
 BEGIN_PACK

@@ -184,7 +184,7 @@ void neighbors_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t blac
            
          openserial_printInfo(COMPONENT_NEIGHBORS, ERR_NEW_BLACKLIST,
                               (errorparameter_t)blacklist,
-                              0);
+                              (errorparameter_t)0);
 
          ENABLE_INTERRUPTS();
          break;
