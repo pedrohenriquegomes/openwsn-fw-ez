@@ -107,8 +107,8 @@ void ieee154e_init() {
    memset(&ieee154e_vars,0,sizeof(ieee154e_vars_t));
    memset(&ieee154e_dbg,0,sizeof(ieee154e_dbg_t));
    
+   // 0 for FHSS and SYNCHRONIZING_CHANNEL for single channel
    ieee154e_vars.singleChannel     = 0;
-   ieee154e_vars.nextChannelEB     = SYNCHRONIZING_CHANNEL - 11;
    
    ieee154e_vars.isSecurityEnabled = FALSE;
    // default hopping template
@@ -439,10 +439,10 @@ port_INLINE void activity_synchronize_newSlot() {
       radio_rfOff();
       
       // configure the radio to listen to the default synchronizing channel
-      radio_setFrequency(SYNCHRONIZING_CHANNEL);
+      radio_setFrequency(chTemplate_eb[0] + 11);
       
       // update record of current channel
-      ieee154e_vars.freq = SYNCHRONIZING_CHANNEL;
+      ieee154e_vars.freq = chTemplate_eb[0] + 11;
       
       // switch on the radio in Rx mode.
       radio_rxEnable();

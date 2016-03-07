@@ -221,9 +221,6 @@ uint16_t neighbors_getUsedBlacklist(uint16_t address, bool oldest) {
          return neighbors_vars.neighbors[i].usedBlacklists[blacklistIdx].channelMap;
       }
    }
-
-   openserial_printError(COMPONENT_NEIGHBORS,ERR_NEIGHBORS_NO_FOUND,
-                        (errorparameter_t)0, (errorparameter_t)0);
    
    return 0;
 }
@@ -244,9 +241,6 @@ uint16_t      neighbors_getCurrentBlacklist(uint16_t address) {
          return neighbors_vars.neighbors[i].currentBlacklist;  
       }
    }
-   
-   openserial_printError(COMPONENT_NEIGHBORS,ERR_NEIGHBORS_NO_FOUND,
-                        (errorparameter_t)1, (errorparameter_t)0);
    
    return 0;
 }

@@ -21,7 +21,7 @@ The superframe repears over time and can be arbitrarly long.
 #define NUM_EB_SLOTS         3
 
 #define NUM_TXRX_SLOTS       0
-#define NUM_UNICAST_SLOTS    3
+#define NUM_UNICAST_SLOTS    4
 
 #define MAXACTIVESLOTS       (NUM_EB_SLOTS + NUM_TXRX_SLOTS + NUM_UNICAST_SLOTS)
 

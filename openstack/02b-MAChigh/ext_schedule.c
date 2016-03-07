@@ -4,109 +4,43 @@
 void getExtSchedule(uint16_t addr, uint8_t timeslot_offset, extScheduleEntry_t *extScheduleEntry)
 {
    switch (addr) {
-      case 0x6ce6:
+      case 0xed4f:
          switch(timeslot_offset) {
             case 0:
                extScheduleEntry->type = CELLTYPE_RX;
-               extScheduleEntry->channelMask = 15;
-               extScheduleEntry->neighbor = 0x6300;
+               extScheduleEntry->channelMask = 0x00ff;
+               extScheduleEntry->neighbor = 0xecf2;
                break;
             case 1:
                extScheduleEntry->type = CELLTYPE_RX;
-               extScheduleEntry->channelMask = 15;
-               extScheduleEntry->neighbor = 0xf361;
+               extScheduleEntry->channelMask = 0x00ff;
+               extScheduleEntry->neighbor = 0xecf2;
                break;
             case 2:
                extScheduleEntry->type = CELLTYPE_RX;
-               extScheduleEntry->channelMask = 15;
-               extScheduleEntry->neighbor = 0xcf11;
+               extScheduleEntry->channelMask = 0x00ff;
+               extScheduleEntry->neighbor = 0xecf5;
                break;
             case 3:
                extScheduleEntry->type = CELLTYPE_RX;
-               extScheduleEntry->channelMask = 15;
-               extScheduleEntry->neighbor = 0x4ffa;
-               break;
-            case 4:
-               extScheduleEntry->type = CELLTYPE_RX;
-               extScheduleEntry->channelMask = 15;
-               extScheduleEntry->neighbor = 0x5890;
-               break;
-            case 5:
-               extScheduleEntry->type = CELLTYPE_RX;
-               extScheduleEntry->channelMask = 15;
-               extScheduleEntry->neighbor = 0x6658;
-               break;
-            case 6:
-               extScheduleEntry->type = CELLTYPE_RX;
-               extScheduleEntry->channelMask = 15;
-               extScheduleEntry->neighbor = 0x50f4;
-               break;
-            case 7:
-               extScheduleEntry->type = CELLTYPE_RX;
-               extScheduleEntry->channelMask = 15;
-               extScheduleEntry->neighbor = 0xedbc;
+               extScheduleEntry->channelMask = 0x00ff;
+               extScheduleEntry->neighbor = 0xecf5;
                break;
             default:
                break;
          }
          break;
-      case 0xedbc:
+      case 0xecf2:
          switch(timeslot_offset) {
             case 0:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 1:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 2:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 3:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 4:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 5:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 6:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 7:
                extScheduleEntry->type = CELLTYPE_TX;
-               extScheduleEntry->channelMask = 15;
-               extScheduleEntry->neighbor = 0x6ce6;
-               break;
-            default:
-               break;
-         }
-         break;
-      case 0x50f4:
-         switch(timeslot_offset) {
-            case 0:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
+               extScheduleEntry->channelMask = 0x00ff;
+               extScheduleEntry->neighbor = 0xed4f;
                break;
             case 1:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
+               extScheduleEntry->type = CELLTYPE_TX;
+               extScheduleEntry->channelMask = 0x00ff;
+               extScheduleEntry->neighbor = 0xed4f;
                break;
             case 2:
                extScheduleEntry->type = CELLTYPE_OFF;
@@ -118,169 +52,11 @@ void getExtSchedule(uint16_t addr, uint8_t timeslot_offset, extScheduleEntry_t *
                extScheduleEntry->channelMask = 0;
                extScheduleEntry->neighbor = 0;
                break;
-            case 4:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 5:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 6:
-               extScheduleEntry->type = CELLTYPE_TX;
-               extScheduleEntry->channelMask = 15;
-               extScheduleEntry->neighbor = 0x6ce6;
-               break;
-            case 7:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
             default:
                break;
          }
          break;
-      case 0x6658:
-         switch(timeslot_offset) {
-            case 0:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 1:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 2:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 3:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 4:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 5:
-               extScheduleEntry->type = CELLTYPE_TX;
-               extScheduleEntry->channelMask = 15;
-               extScheduleEntry->neighbor = 0x6ce6;
-               break;
-            case 6:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 7:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            default:
-               break;
-         }
-         break;
-      case 0x5890:
-         switch(timeslot_offset) {
-            case 0:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 1:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 2:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 3:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 4:
-               extScheduleEntry->type = CELLTYPE_TX;
-               extScheduleEntry->channelMask = 15;
-               extScheduleEntry->neighbor = 0x6ce6;
-               break;
-            case 5:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 6:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 7:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            default:
-               break;
-         }
-         break;
-      case 0x4ffa:
-         switch(timeslot_offset) {
-            case 0:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 1:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 2:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 3:
-               extScheduleEntry->type = CELLTYPE_TX;
-               extScheduleEntry->channelMask = 15;
-               extScheduleEntry->neighbor = 0x6ce6;
-               break;
-            case 4:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 5:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 6:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 7:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            default:
-               break;
-         }
-         break;
-      case 0xcf11:
+      case 0xecf5:
          switch(timeslot_offset) {
             case 0:
                extScheduleEntry->type = CELLTYPE_OFF;
@@ -294,125 +70,13 @@ void getExtSchedule(uint16_t addr, uint8_t timeslot_offset, extScheduleEntry_t *
                break;
             case 2:
                extScheduleEntry->type = CELLTYPE_TX;
-               extScheduleEntry->channelMask = 15;
-               extScheduleEntry->neighbor = 0x6ce6;
+               extScheduleEntry->channelMask = 0x00ff;
+               extScheduleEntry->neighbor = 0xed4f;
                break;
             case 3:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 4:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 5:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 6:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 7:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            default:
-               break;
-         }
-         break;
-      case 0xf361:
-         switch(timeslot_offset) {
-            case 0:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 1:
                extScheduleEntry->type = CELLTYPE_TX;
-               extScheduleEntry->channelMask = 15;
-               extScheduleEntry->neighbor = 0x6ce6;
-               break;
-            case 2:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 3:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 4:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 5:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 6:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 7:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            default:
-               break;
-         }
-         break;
-      case 0x6300:
-         switch(timeslot_offset) {
-            case 0:
-               extScheduleEntry->type = CELLTYPE_TX;
-               extScheduleEntry->channelMask = 15;
-               extScheduleEntry->neighbor = 0x6ce6;
-               break;
-            case 1:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 2:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 3:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 4:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 5:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 6:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
-               break;
-            case 7:
-               extScheduleEntry->type = CELLTYPE_OFF;
-               extScheduleEntry->channelMask = 0;
-               extScheduleEntry->neighbor = 0;
+               extScheduleEntry->channelMask = 0x00ff;
+               extScheduleEntry->neighbor = 0xed4f;
                break;
             default:
                break;

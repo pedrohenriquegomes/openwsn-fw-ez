@@ -20,8 +20,8 @@ static const uint8_t chTemplate_default[] = {
 };
 
 static const uint8_t chTemplate_eb[] = {
-   //0,4,9,15                            // channels to send EBs on (-11, i.e. 0=channel 11) (0,4,9,15)==(11,15,20,26)
-  14
+   //15,9,4,0                            // channels to send EBs on (-11, i.e. 0=channel 11) (0,4,9,15)==(11,15,20,26)
+  15                                     
 };
 //=========================== define ==========================================
 
@@ -40,7 +40,7 @@ static const uint8_t chTemplate_eb[] = {
 #define LONGTYPE_DATA             0xd0d0
 #define LONGTYPE_ACK              0xa0a0  
 
-#define SYNCHRONIZING_CHANNEL       25 // channel the mote listens on to synchronize
+#define SYNCHRONIZING_CHANNEL       26 // channel the mote listens on to synchronize
 #define TXRETRIES                    3 // number of MAC retries before declaring failed
 #define TX_POWER                    31 // 1=-25dBm, 31=0dBm (max value)
 #define RESYNCHRONIZATIONGUARD      60 // in 32kHz ticks. min distance to the end of the slot to successfully synchronize
@@ -265,14 +265,6 @@ typedef struct {
    // time correction
    int16_t                   timeCorrection;          // store the timeCorrection, prepend and retrieve it inside of frame header
    uint16_t                  syncSlotLength;
-   // flooding counter
-   uint16_t                  floodingCounter;
-   // flooding state
-   bool                      floodingState;
-   // next channel to send beacon
-   uint8_t                   nextChannelEB;
-   uint8_t                   jumpCounter;
-   
    uint16_t                  joinChannelChangingCounter;
 } ieee154e_vars_t;
 
