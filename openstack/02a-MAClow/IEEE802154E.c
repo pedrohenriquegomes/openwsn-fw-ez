@@ -107,7 +107,6 @@ void ieee154e_init() {
    memset(&ieee154e_dbg,0,sizeof(ieee154e_dbg_t));
    
    ieee154e_vars.singleChannel     = 0;
-   ieee154e_vars.nextChannelEB     = SYNCHRONIZING_CHANNEL - 11;
    
    ieee154e_vars.isSecurityEnabled = FALSE;
    // default hopping template
@@ -438,10 +437,10 @@ port_INLINE void activity_synchronize_newSlot() {
       radio_rfOff();
       
       // configure the radio to listen to the default synchronizing channel
-      radio_setFrequency(SYNCHRONIZING_CHANNEL);
+      radio_setFrequency(chTemplate_eb[0] + 11);
       
       // update record of current channel
-      ieee154e_vars.freq = SYNCHRONIZING_CHANNEL;
+      ieee154e_vars.freq = chTemplate_eb[0] + 11;
       
       // switch on the radio in Rx mode.
       radio_rxEnable();
@@ -455,11 +454,11 @@ port_INLINE void activity_synchronize_newSlot() {
       radio_rfOff();
       
       i=0;
-      while (ieee154e_vars.freq-11 != ieee154e_vars.chTemplateEB[i] && i<EB_NUMCHANS){
+      while ((ieee154e_vars.freq - 11) != ieee154e_vars.chTemplateEB[i] && i < EB_NUMCHANS){
           i++;
       }
       
-      if (i<EB_NUMCHANS){
+      if (i < EB_NUMCHANS){
           ieee154e_vars.freq = 11 + ieee154e_vars.chTemplateEB[(i+1)%EB_NUMCHANS];
       }
       
@@ -1788,8 +1787,12 @@ port_INLINE uint8_t calculateFrequency(uint8_t channelOffset) {
         if (ieee154e_vars.singleChannel >= 11 && ieee154e_vars.singleChannel <= 26 ) {
             return ieee154e_vars.singleChannel; // single channel
         } else {
+#ifdef NOFHSS           // if NOFHSS is defined we simply use the channel offset as the real channel
+            return 11 + channelOffset;
+#else          
             // channel hopping enabled, use the channel depending on hopping template
             return 11 + ieee154e_vars.chTemplate[(ieee154e_vars.dataAsnOffset+channelOffset)%16];
+#endif            
         }
     } else {
         return 11 + ieee154e_vars.chTemplateEB[(ieee154e_vars.ebAsnOffset+channelOffset)%EB_NUMCHANS];

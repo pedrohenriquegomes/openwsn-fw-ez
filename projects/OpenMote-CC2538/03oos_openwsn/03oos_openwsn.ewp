@@ -181,7 +181,7 @@
         <debug>1</debug>
         <option>
           <name>CCDefines</name>
-          <state>FORCETOPOLOGY</state>
+          <state>NOFHSS</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -2364,6 +2364,9 @@
     </group>
     <group>
       <name>02b-MAChigh</name>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\openstack\02b-MAChigh\ext_schedule.c</name>
+      </file>
       <file>
         <name>$PROJ_DIR$\..\..\..\openstack\02b-MAChigh\neighbors.c</name>
       </file>

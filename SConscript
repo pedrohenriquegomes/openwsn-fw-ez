@@ -39,6 +39,8 @@ if env['dagroot']==1:
     env.Append(CPPDEFINES    = 'DAGROOT')
 if env['forcetopology']==1:
     env.Append(CPPDEFINES    = 'FORCETOPOLOGY')
+if env['nofhss']==1:
+    env.Append(CPPDEFINES    = 'NOFHSS')
 if env['topology']=='linear':
     env.Append(CPPDEFINES    = 'TOPOLOGY_LINEAR')
 else:
@@ -72,9 +74,6 @@ if   env['setup']=='testbed':
     env.Append(CPPDEFINES    = 'SETUP_TESTBED')
 elif env['setup']=='usbhub':
     env.Append(CPPDEFINES    = 'SETUP_USBHUB')
-
-if   env['fakesend']=='1':
-    env.Append(CPPDEFINES    = 'LIGHT_FAKESEND')
     
 if   env['toolchain']=='mspgcc':
     

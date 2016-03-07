@@ -74,6 +74,8 @@ project:
                    default, in DAG root mode.
     forcetopology  Force the topology to the one indicated in the
                    openstack/02a-MAClow/topology.c file.
+    nofhss		   Do not use the FHSS algorithm, the channel is determined 
+	               by the schedule
     noadaptivesync Do not use adaptive synchronization.
     cryptoengine   Select appropriate crypto engine implementation
                    (dummy_crypto_engine, firmware_crypto_engine, 
@@ -131,6 +133,7 @@ command_line_options = {
     'simhostpy':        [''],                               # No reasonable default
     'dagroot':          ['0','1'],
     'forcetopology':    ['0','1'],
+    'nofhss':           ['0','1'],	
     'topology':         ['','linear'],
     'debug':            ['0','1'],
     'noadaptivesync':   ['0','1'],
@@ -257,9 +260,16 @@ command_line_vars.AddVariables(
         int,                                               # converter
     ),
     (
+        'nofhss',                                   	   # key
+        '',                                                # help
+        command_line_options['nofhss'][0],                 # default
+        validate_option,                                   # validator
+        int,                                               # converter
+    ),
+    (
         'topology',                                        # key
         '',                                                # help
-        command_line_options['topology'][0],          # default
+        command_line_options['topology'][0],               # default
         validate_option,                                   # validator
         None,                                              # converter
     ),
