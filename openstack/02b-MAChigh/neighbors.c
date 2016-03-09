@@ -102,7 +102,7 @@ void 		neighbors_updateBlacklistTxData(uint16_t address, uint8_t dsn) {
 \param[in] dsn The Data Sequence Number
 
 */
-void neighbors_updateBlacklistRxData(uint16_t address, uint8_t dsn) {
+void neighbors_updateBlacklistRxData(uint16_t address, uint8_t dsn, uint8_t channel) {
    uint8_t i,j;
   
    // iterate through neighbor table
@@ -135,6 +135,9 @@ void neighbors_updateBlacklistRxData(uint16_t address, uint8_t dsn) {
                neighbors_vars.neighbors[i].oldestBlacklistIdx = 0;
             }
          }
+         
+         // clean the blacklist of this node
+         neighbors_vars.neighbors[i].blacklistCounter[channel] = 0;
       
          ENABLE_INTERRUPTS();
          break;
@@ -266,7 +269,29 @@ void          neighbors_updateCurrentBlacklist(uint16_t address, owerror_t error
    }  
 }
 
-
+void   neighbors_checkBlacklist(uint8_t neighborRow, uint8_t blackThreshold, uint8_t whiteThreshold) {
+   uint8_t i;
+  
+   INTERRUPT_DECLARATION();
+   DISABLE_INTERRUPTS();  
+   
+   if (neighbors_vars.neighbors[neighborRow].used) {
+      for (i=0; i<16; i++) {
+         // increment the counter and go back to zero when reaches whiteThreshold
+         neighbors_vars.neighbors[neighborRow].blacklistCounter[i] = (neighbors_vars.neighbors[neighborRow].blacklistCounter[i]+1)%whiteThreshold;  
+       
+         // update the blacklist
+         if (neighbors_vars.neighbors[neighborRow].blacklistCounter[i] > blackThreshold) {
+            neighbors_vars.neighbors[neighborRow].currentBlacklist |= (1 << i);
+         }
+         else {
+            neighbors_vars.neighbors[neighborRow].currentBlacklist &= ~(1 << i);
+         }
+      }
+   }
+   
+   ENABLE_INTERRUPTS();
+}
 
 //===== getters
 

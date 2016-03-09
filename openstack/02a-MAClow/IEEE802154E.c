@@ -145,6 +145,9 @@ void ieee154e_init() {
    // have the radio start its timer
    ieee154e_vars.syncSlotLength = TsSlotDuration;
    radio_startTimer(TsSlotDuration);
+   
+   // initialize the blacklist module
+   blacklist_init();
 }
 
 //=========================== public ==========================================
@@ -1436,7 +1439,7 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
             // if I am the parent and I am going to send an ACK, I have to store the DSN in the neighbors blacklist
             if (!neighbors_isPreferredParent(eb_payload->l2_hdr.src))
             {
-                neighbors_updateBlacklistRxData(eb_payload->l2_hdr.src, eb_payload->l2_hdr.dsn);
+                neighbors_updateBlacklistRxData(eb_payload->l2_hdr.src, eb_payload->l2_hdr.dsn, ieee154e_vars.freq - 11);
                 
                 openserial_printError(COMPONENT_IEEE802154E,ERR_RCV_BLACKLIST,
                      (errorparameter_t)eb_payload->l2_hdr.dsn,

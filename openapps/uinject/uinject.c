@@ -111,7 +111,6 @@ void uinject_receive(OpenQueueEntry_t* pkt) {
    task to scheduler with CoAP priority, and let scheduler take care of it.
 */
 void uinject_timer_cb(opentimer_id_t id){
-   
    scheduler_push_task(uinject_task_cb,TASKPRIO_COAP);
 }
 
