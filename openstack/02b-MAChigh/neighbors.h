@@ -51,7 +51,8 @@ typedef struct {
    blacklistEntry_t     usedBlacklists[2];      // these are the blacklists currently being used. we need two because we only switch to the newest when
    // we get a confirmation from the neighbor. the confirmation comes when we receive a packet with newer DSN
    uint8_t              oldestBlacklistIdx;        // either 0 or 1 (index of the oldest blacklist).
-   uint8_t              blacklistCounter[16];      // counter that is used for counting the number of Rx packets in every channel
+   uint8_t              blacklistMetric[16];       // this metric is used for including or removing a channel from the blacklist. Its meaning depends on the type
+   // of blacklist mechanism being used (timeout-based or MAB-based)
    
 } neighborRow_t;
 END_PACK
@@ -96,7 +97,7 @@ void 	      neighbors_updateBlacklistRxData(uint16_t address, uint8_t dsn, uint8
 uint16_t      neighbors_getUsedBlacklist(uint16_t address, bool oldest);
 uint16_t      neighbors_getCurrentBlacklist(uint16_t address);
 void          neighbors_updateCurrentBlacklist(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy);
-void          neighbors_checkBlacklist(uint8_t neighborRow, uint8_t blackThreshold, uint8_t whiteThreshold);
+void          neighbors_checkBlacklistPeriodic(uint8_t neighborRow, uint8_t blackThreshold, uint8_t whiteThreshold);
 
 // interrogators
 bool          neighbors_isStableNeighbor(uint16_t shortID);

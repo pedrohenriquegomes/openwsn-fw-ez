@@ -9,7 +9,7 @@ TriggerName=main
 LimitSize=0
 ByteLimit=50
 [DebugChecksum]
-Checksum=-280304733
+Checksum=1776037258
 [Exceptions]
 StopOnUncaught=_ 0
 StopOnThrow=_ 0
@@ -23,18 +23,20 @@ CStepIntDis=_ 1
 Fmt0=ack_ht-blacklist	4	0
 Fmt1=asn_t-bytes0and1	4	0
 Fmt2=blacklistEntry_t-channelMap	4	0
-Fmt3=ieee154e_vars_t-freq	3	0
-Fmt4=neighborRow_t-currentBlacklist	4	0
-Fmt5=neighborRow_t-numRx	3	0
-Fmt6=neighborRow_t-numTx	3	0
-Fmt7=neighborRow_t-numTxACK	3	0
-Fmt8=neighborRow_t-rssi	3	0
-Fmt9=neighborRow_t-shortID	4	0
+Fmt3=idmanager_vars_t-myShortID	4	0
+Fmt4=ieee154e_vars_t-freq	3	0
+Fmt5=neighborRow_t-currentBlacklist	4	0
+Fmt6=neighborRow_t-numRx	3	0
+Fmt7=neighborRow_t-numTx	3	0
+Fmt8=neighborRow_t-numTxACK	3	0
+Fmt9=neighborRow_t-rssi	3	0
+Fmt10=neighborRow_t-shortID	4	0
 [Disassemble mode]
 mode=0
 [Breakpoints2]
-Bp0=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\..\..\openstack\02a-MAClow\IEEE802154E.c}.1215.10" 0 0 1 "" 0 "" 0
-Count=1
+Bp0=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\..\..\openstack\02a-MAClow\IEEE802154E.c}.1223.10" 0 0 1 "" 0 "" 0
+Bp1=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\..\..\openapps\uinject\uinject.c}.125.8" 0 0 1 "" 0 "" 0
+Count=2
 [Log file]
 LoggingEnabled=_ 0
 LogFile=_ ""

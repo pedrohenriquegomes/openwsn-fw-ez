@@ -16,7 +16,8 @@
 #include "adaptive_sync.h"
 #include "sensors.h"
 #include "topology.h"
-#include "openapps.h" 
+#include "openapps.h"
+#include "blacklist.h"
 
 //=========================== variables =======================================
 
@@ -733,6 +734,13 @@ port_INLINE void activity_ti1ORri1() {
       }
    }
   
+#ifdef UINJECT_SEND_ONE_PER_SLOTFRAME
+   // make uinject generate one packet each slot frame
+   if (idmanager_getIsDAGroot()==FALSE && ieee154e_vars.slotOffset==0) {
+      uinject_task_cb();
+   }
+#endif
+   
    if (ieee154e_vars.slotOffset==ieee154e_vars.nextActiveSlotOffset) {
       // this is the next active slot
       

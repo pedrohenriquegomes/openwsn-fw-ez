@@ -13,7 +13,16 @@
 
 //=========================== define ==========================================
 
-#define UINJECT_PERIOD_MS 5000
+// uinject tx policy
+//#define UINJECT_SEND_PERIODIC             // uinject will send packets periodically
+#define UINJECT_SEND_ONE_PER_SLOTFRAME    // uinject will send one packet per slotframe
+
+#ifdef UINJECT_SEND_PERIODIC
+   #define UINJECT_PERIOD_MS 1000          // uinject period in ms
+#endif
+
+#ifdef UINJECT_SEND_ONE_PER_SLOTFRAME
+#endif
 
 //=========================== typedef =========================================
 
@@ -42,6 +51,7 @@ typedef struct {
 void uinject_init(void);
 void uinject_sendDone(OpenQueueEntry_t* msg, owerror_t error);
 void uinject_receive(OpenQueueEntry_t* msg);
+void uinject_task_cb(void);
 
 /**
 \}

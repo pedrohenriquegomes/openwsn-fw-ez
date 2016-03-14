@@ -2350,6 +2350,12 @@
         <name>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\adaptive_sync.h</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\blacklist.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\blacklist.h</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\IEEE802154E.c</name>
       </file>
       <file>

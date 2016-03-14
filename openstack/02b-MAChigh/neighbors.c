@@ -135,10 +135,18 @@ void neighbors_updateBlacklistRxData(uint16_t address, uint8_t dsn, uint8_t chan
                neighbors_vars.neighbors[i].oldestBlacklistIdx = 0;
             }
          }
-         
-         // clean the blacklist of this node
-         neighbors_vars.neighbors[i].blacklistCounter[channel] = 0;
-      
+ 
+         // lets update the blacklist metric with a sucessfull transmission
+         blacklist_update
+#ifdef BLACKLIST_TIMEOUT_BASED
+         // if our blacklist mechanism is based on timeout, let clean the blacklist of this node
+         neighbors_vars.neighbors[i].blacklistMetric[channel] = 0;
+#endif
+
+#ifdef BLACKLIST_TIMEOUT_BASED
+
+#endif         
+
          ENABLE_INTERRUPTS();
          break;
       }
@@ -269,7 +277,16 @@ void          neighbors_updateCurrentBlacklist(uint16_t address, owerror_t error
    }  
 }
 
-void   neighbors_checkBlacklist(uint8_t neighborRow, uint8_t blackThreshold, uint8_t whiteThreshold) {
+/**
+\brief Increments the blacklist metric and check if it reached the limits. If it is larger than whiteThreshold, reset to 0
+       If it is larger than blackThreshold, set the channel as Blacked
+
+\param[in] neighborRow The neighbor to be analysed
+\param[in] blackThreshold The lower counter to consider a channel as Blacked
+\param[in] whiteThreshold The upper limit to reset the channel as White
+
+*/ 
+void   neighbors_checkBlacklistPeriodic(uint8_t neighborRow, uint8_t blackThreshold, uint8_t whiteThreshold) {
    uint8_t i;
   
    INTERRUPT_DECLARATION();
@@ -278,10 +295,10 @@ void   neighbors_checkBlacklist(uint8_t neighborRow, uint8_t blackThreshold, uin
    if (neighbors_vars.neighbors[neighborRow].used) {
       for (i=0; i<16; i++) {
          // increment the counter and go back to zero when reaches whiteThreshold
-         neighbors_vars.neighbors[neighborRow].blacklistCounter[i] = (neighbors_vars.neighbors[neighborRow].blacklistCounter[i]+1)%whiteThreshold;  
+         neighbors_vars.neighbors[neighborRow].blacklistMetric[i] = (neighbors_vars.neighbors[neighborRow].blacklistMetric[i]+1)%whiteThreshold;  
        
          // update the blacklist
-         if (neighbors_vars.neighbors[neighborRow].blacklistCounter[i] > blackThreshold) {
+         if (neighbors_vars.neighbors[neighborRow].blacklistMetric[i] > blackThreshold) {
             neighbors_vars.neighbors[neighborRow].currentBlacklist |= (1 << i);
          }
          else {
