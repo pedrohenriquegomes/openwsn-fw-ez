@@ -904,7 +904,7 @@ port_INLINE void activity_ti2() {
    
    if (schedule_getType() == CELLTYPE_TX) {
       // if I am transmitting in a dedicated slot, get the blacklist
-      blacklist = neighbors_getUsedBlacklist(schedule_getNeighbor(), TRUE);
+      blacklist = blacklist_getUsedBlacklist(schedule_getNeighbor(), TRUE);
    }
    else {
       // the slot is shared, do not use the blacklist
@@ -928,7 +928,7 @@ port_INLINE void activity_ti2() {
    
    if (isPktBroadcast(ieee154e_vars.dataToSend) == FALSE && neighbors_isPreferredParent(payload->dst)) {
       // I am not sending a broadcast and I am a child, store the DSN in the neighbor list   
-      neighbors_updateBlacklistTxData(payload->dst, payload->dsn);
+      blacklist_updateBlacklistTxData(payload->dst, payload->dsn);
       
       openserial_printError(COMPONENT_IEEE802154E,ERR_SND_BLACKLIST,
                            (errorparameter_t)payload->dsn,
@@ -1042,22 +1042,7 @@ port_INLINE void activity_ti5(PORT_RADIOTIMER_WIDTH capturedTime) {
 port_INLINE void activity_ti6() {
    // change state
    changeState(S_RXACKPREPARE);
-   
-   // check if we are going to use a blacklist
-   //uint16_t blacklist;
-   
-   //if (schedule_getType() == CELLTYPE_TX) {
-      // if I am transmitting in a dedicated slot, get the blacklist
-      //blacklist = neighbors_getUsedBlacklist(schedule_getNeighbor(), TRUE);
-   //}
-   //else {
-      // the slot is shared, do not use the blacklist
-      //blacklist = 0;
-   //}
-   
-   // calculate the frequency to transmit on
-   //ieee154e_vars.freq = calculateFrequencyWithBlacklist(schedule_getChannelOffset(), blacklist);
-   
+
    // configure the radio for that frequency
    radio_setFrequency(ieee154e_vars.freq);
    
@@ -1227,7 +1212,7 @@ port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
       if (neighbors_isPreferredParent(ack_payload->l2_hdr.src)) {
         
          // update the entry with the received blacklist
-         neighbors_updateBlacklistRxAck(ack_payload->l2_hdr.src, ack_payload->l2_hdr.dsn, ack_payload->blacklist);
+         blacklist_updateBlacklistRxAck(ack_payload->l2_hdr.src, ack_payload->l2_hdr.dsn, ack_payload->blacklist);
       }
       
       // inform schedule of successful transmission
@@ -1261,7 +1246,7 @@ port_INLINE void activity_ri2() {
    
    if (schedule_getType() == CELLTYPE_RX) {
       // if I am transmitting in a dedicated slot, get the blacklist
-      blacklist = neighbors_getUsedBlacklist(schedule_getNeighbor(), TRUE);
+      blacklist = blacklist_getUsedBlacklist(schedule_getNeighbor(), TRUE);
    }
    else {
       // the slot is shared, do not use the blacklist
@@ -1312,10 +1297,10 @@ port_INLINE void activity_ri3() {
 }
 
 port_INLINE void activity_rie2() {
-   // update the blacklist considering a failed reception - But how do I know that the packet was transmitted?
-   //if (schedule_getType() == CELLTYPE_RX) {
-   //   neighbors_updateCurrentBlacklist(schedule_getNeighbor(), E_FAIL, ieee154e_vars.freq, ieee154e_vars.dataReceived->l1_rssi);
-   //}
+   // update the blacklist considering a failed reception
+   if (schedule_getType() == CELLTYPE_RX) {
+      blacklist_updateCurrentBlacklist(schedule_getNeighbor(), E_FAIL, ieee154e_vars.freq - 11, ieee154e_vars.dataReceived->l1_rssi);
+   }
    
    // abort
    endSlot();
@@ -1434,26 +1419,27 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
       
       // record the captured time
       ieee154e_vars.lastCapturedTime = capturedTime;
-      
-      // update the blacklist considering a sucessful reception
-      neighbors_updateCurrentBlacklist(eb_payload->l2_hdr.src, E_SUCCESS, ieee154e_vars.freq, ieee154e_vars.dataReceived->l1_rssi);
         
       // ack requested
       if(eb_payload->l2_hdr.dst != BROADCAST_ID) {
         
          if (eb_payload->l2_hdr.dst == idmanager_getMyShortID()) {
-            // lets send the ACK
+           // lets send the ACK
           
             // if I am the parent and I am going to send an ACK, I have to store the DSN in the neighbors blacklist
             if (!neighbors_isPreferredParent(eb_payload->l2_hdr.src))
             {
-                neighbors_updateBlacklistRxData(eb_payload->l2_hdr.src, eb_payload->l2_hdr.dsn, ieee154e_vars.freq - 11);
+                blacklist_updateBlacklistRxData(eb_payload->l2_hdr.src, eb_payload->l2_hdr.dsn, ieee154e_vars.freq - 11);
                 
                 openserial_printError(COMPONENT_IEEE802154E,ERR_RCV_BLACKLIST,
                      (errorparameter_t)eb_payload->l2_hdr.dsn,
                      (errorparameter_t)ieee154e_vars.lastBlacklist);
             }
             
+            // update the blacklist considering a sucessful reception
+            blacklist_updateCurrentBlacklist(eb_payload->l2_hdr.src, E_SUCCESS, ieee154e_vars.freq - 11, ieee154e_vars.dataReceived->l1_rssi);
+           
+           
             // arm rt5
             radiotimer_schedule(DURATION_rt5);
          }
@@ -1539,26 +1525,11 @@ port_INLINE void activity_ri6() {
    ack_payload->l2_hdr.dst      = ((l2_ht*)(ieee154e_vars.dataReceived->payload))->src;
    
    // fill in the blacklist
-   ack_payload->blacklist       = neighbors_getUsedBlacklist(ack_payload->l2_hdr.dst, FALSE);
+   ack_payload->blacklist       = blacklist_getUsedBlacklist(ack_payload->l2_hdr.dst, FALSE);
    
    // space for 2-byte CRC
    packetfunctions_reserveFooterSize(ieee154e_vars.ackToSend,2);
-  
-   // check if we are going to use a blacklist
-   //uint16_t blacklist;
-   
-   //if (schedule_getType() == CELLTYPE_RX) {
-      // if I am transmitting in a dedicated slot, get the blacklist
-      //blacklist = neighbors_getUsedBlacklist(schedule_getNeighbor(), TRUE);
-   //}
-   //else {
-      // the slot is shared, do not use the blacklist
-      //blacklist = 0;
-   //}
-   
-   // calculate the frequency to transmit on
-   //ieee154e_vars.freq = calculateFrequencyWithBlacklist(schedule_getChannelOffset(), blacklist);
-   
+
    // configure the radio for that frequency
    radio_setFrequency(ieee154e_vars.freq);
    
@@ -1915,25 +1886,31 @@ port_INLINE uint8_t calculateFrequency(uint8_t channelOffset) {
 \returns The calculated frequency channel, an integer between 11 and 26.
 */
 uint8_t calculateFrequencyWithBlacklist(uint16_t channelMap, uint16_t blacklist) {
-  
-   uint8_t i = 0;
+   uint8_t i, realChannel;
+   
+   // if channelMap is 0, we have a non-unicast time slot (RX/TX or EB slots)
+   if (channelMap == 0) {
+     return calculateFrequency(channelMap);
+   }
+   
+   
    for (i = 0; i < 16; i++)
    {
       // Check all possible channel offsets allowed by the channelMask
       if (channelMap & (uint16_t)(1 << i))
       {
-         uint8_t realChannel = calculateFrequency(i) - 11;
+         realChannel = calculateFrequency(i) - 11;
       
          // Check if real channel is not in blacklist
          if ((uint16_t)(~blacklist) & (uint16_t)(1 << realChannel))
          {
-            return realChannel + 11;
+            break;
          }
       }
    }
   
-   // We only reach here if channelMap is equal to 0 (case of RX/TX and EB slots)
-   return calculateFrequency(channelMap);
+   // we return the first non-blacked channel or the last one (in case all channels were blacked)
+   return realChannel + 11;
 }
 
 bool     isPktBroadcast(OpenQueueEntry_t* pkt) {

@@ -27,13 +27,6 @@
 
 BEGIN_PACK
 typedef struct {
-   uint8_t         dsn;
-   uint16_t        channelMap; // bitmap of 0s (good channels) and 1s (bad channels)
-} blacklistEntry_t;
-END_PACK
-
-BEGIN_PACK
-typedef struct {
    bool                 used;
    uint8_t              parentPreference;
    bool                 stableNeighbor;
@@ -46,14 +39,6 @@ typedef struct {
    uint8_t              numTxACK;
    uint8_t              numWraps;    //number of times the tx counter wraps. can be removed if memory is a restriction. also check openvisualizer then.
    asn_t                asn;
-   uint16_t             currentBlacklist;       // the current local blacklist for that neighbor. this is not necessarily the blacklist that we are using
-   // since we may have not yet negotiated with the neighbor. this is the blacklist that should be updated every sucessful or failed packet reception
-   blacklistEntry_t     usedBlacklists[2];      // these are the blacklists currently being used. we need two because we only switch to the newest when
-   // we get a confirmation from the neighbor. the confirmation comes when we receive a packet with newer DSN
-   uint8_t              oldestBlacklistIdx;        // either 0 or 1 (index of the oldest blacklist).
-   uint8_t              blacklistMetric[16];       // this metric is used for including or removing a channel from the blacklist. Its meaning depends on the type
-   // of blacklist mechanism being used (timeout-based or MAB-based)
-   
 } neighborRow_t;
 END_PACK
 
@@ -90,15 +75,6 @@ void          neighbors_init(void);
 dagrank_t     neighbors_getMyDAGrank(void);
 uint8_t       neighbors_getNumNeighbors(void);
 
-// blacklist
-void 	      neighbors_updateBlacklistTxData(uint16_t address, uint8_t dsn);
-void 	      neighbors_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t blacklist);
-void 	      neighbors_updateBlacklistRxData(uint16_t address, uint8_t dsn, uint8_t channel);
-uint16_t      neighbors_getUsedBlacklist(uint16_t address, bool oldest);
-uint16_t      neighbors_getCurrentBlacklist(uint16_t address);
-void          neighbors_updateCurrentBlacklist(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy);
-void          neighbors_checkBlacklistPeriodic(uint8_t neighborRow, uint8_t blackThreshold, uint8_t whiteThreshold);
-
 // interrogators
 bool          neighbors_isStableNeighbor(uint16_t shortID);
 bool          neighbors_isPreferredParent(uint16_t shortID);
@@ -124,6 +100,9 @@ void          neighbors_indicateRxEB(
 void          neighbors_updateMyDAGrankAndNeighborPreference(void);
 // debug
 bool          debugPrint_neighbors(void);
+
+int8_t        neighbors_getRow(uint16_t shortID);
+bool          neighbors_isRowUsed(uint8_t row);
 
 /**
 \}

@@ -31,18 +31,9 @@ bool isThisRowMatching(
 \brief Initializes this module.
 */
 void neighbors_init() {
-   uint8_t i;
-   
+
    // clear module variables
    memset(&neighbors_vars,0,sizeof(neighbors_vars_t));
-   
-   // set the defautl blacklist
-   for (i = 0; i < MAXNUMNEIGHBORS; i++)
-   {
-      neighbors_vars.neighbors[i].usedBlacklists[0].channelMap  = DEFAULT_BLACKLIST;
-      neighbors_vars.neighbors[i].usedBlacklists[1].channelMap  = DEFAULT_BLACKLIST;       
-      neighbors_vars.neighbors[i].currentBlacklist              = DEFAULT_BLACKLIST; 
-   }
    
    // set myDAGrank
    if (idmanager_getIsDAGroot()==TRUE) {
@@ -50,264 +41,6 @@ void neighbors_init() {
    } else {
       neighbors_vars.myDAGrank=DEFAULTDAGRANK;
    }
-}
-
-//===== blacklist
-
-/**
-\brief It is executed when I am a child and will send a data packet and will wait for the blacklist from my parent
-       I need to check if I already have DSN in my list. If so, do nothing. If not, delete the entry not in use and create a new one
-       with DSN and empty blacklist
-
-\param[in] address The address of the neighbor.
-\param[in] dsn The Data Sequence Number
-
-*/
-void 		neighbors_updateBlacklistTxData(uint16_t address, uint8_t dsn) {
-   uint8_t i, j;
-   
-   // iterate through neighbor table
-   for (i=0;i<MAXNUMNEIGHBORS;i++) {
-      if (isThisRowMatching(address,i)) {
-
-         INTERRUPT_DECLARATION();
-         DISABLE_INTERRUPTS();
-
-         // if we dont have a blacklist for our DSN
-         if (neighbors_vars.neighbors[i].usedBlacklists[0].dsn != dsn &&
-            neighbors_vars.neighbors[i].usedBlacklists[1].dsn != dsn) {
-          
-            // check which is the current blacklist being used
-            if (neighbors_vars.neighbors[i].oldestBlacklistIdx == 0) j = 0;
-            else j = 1;
-        
-            neighbors_vars.neighbors[i].usedBlacklists[j].dsn = dsn;
-            // I do not change the channelMap because it may be reused for restransmissions of the same packet
-
-         }
-      
-         ENABLE_INTERRUPTS();
-         break;
-      }
-   }
-}
-
-/**
-\brief This function is executed when I receive a data packet and will send my most recent blacklist
-       into the next ACK (that I am sending). I need to check if I alredy have DSN in my list. 
-       If so, I update with the most recent blacklist; if not, I delete the oldest entry and create a new one 
-       (with DSN and the most recent local blacklist)
-
-\param[in] address The address of the neighbor.
-\param[in] dsn The Data Sequence Number
-
-*/
-void neighbors_updateBlacklistRxData(uint16_t address, uint8_t dsn, uint8_t channel) {
-   uint8_t i,j;
-  
-   // iterate through neighbor table
-   for (i=0;i<MAXNUMNEIGHBORS;i++) {
-      if (isThisRowMatching(address,i)) {
-      
-         INTERRUPT_DECLARATION();
-         DISABLE_INTERRUPTS();
-      
-         if (neighbors_vars.neighbors[i].usedBlacklists[0].dsn == dsn) {
-            // first entry has DSN  
-            neighbors_vars.neighbors[i].usedBlacklists[0].channelMap = neighbors_vars.neighbors[i].currentBlacklist;
-         }
-         else if (neighbors_vars.neighbors[i].usedBlacklists[1].dsn == dsn) {
-            // second entry has DSN
-            neighbors_vars.neighbors[i].usedBlacklists[1].channelMap = neighbors_vars.neighbors[i].currentBlacklist;
-         }
-         else {
-            // we do not have an entry with DSN. lets find the oldest entry
-            if (neighbors_vars.neighbors[i].oldestBlacklistIdx == 0) j = 0;
-            else j = 1;
-        
-            neighbors_vars.neighbors[i].usedBlacklists[j].dsn = dsn;
-            neighbors_vars.neighbors[i].usedBlacklists[j].channelMap = neighbors_vars.neighbors[i].currentBlacklist;
-        
-            if (j == 0) {
-               neighbors_vars.neighbors[i].oldestBlacklistIdx = 1;
-            }
-            else {
-               neighbors_vars.neighbors[i].oldestBlacklistIdx = 0;
-            }
-         }
- 
-         // lets update the blacklist metric with a sucessfull transmission
-         blacklist_update
-#ifdef BLACKLIST_TIMEOUT_BASED
-         // if our blacklist mechanism is based on timeout, let clean the blacklist of this node
-         neighbors_vars.neighbors[i].blacklistMetric[channel] = 0;
-#endif
-
-#ifdef BLACKLIST_TIMEOUT_BASED
-
-#endif         
-
-         ENABLE_INTERRUPTS();
-         break;
-      }
-   }
-}
-
-/**
-\brief This function is executed when I receive an ACK packet and need to update the neighbors blacklist
-       I should already have an entry with the corresponding DSN
-
-\param[in] address The address of the neighbor.
-\param[in] dsn The Data Sequence Number
-\param[in] blacklist Received blacklist
-
-*/ 
-void neighbors_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t blacklist) {
-   uint8_t i;
-  
-   // Iterate through neighbor table
-   for (i=0;i<MAXNUMNEIGHBORS;i++) {
-      if (isThisRowMatching(address,i)) {
-      
-         INTERRUPT_DECLARATION();
-         DISABLE_INTERRUPTS();
-      
-         // found the entries for address. One entry should have DSN and it need to be updated
-         if (neighbors_vars.neighbors[i].usedBlacklists[0].dsn == dsn) {
-            neighbors_vars.neighbors[i].usedBlacklists[0].channelMap = blacklist;
-         }
-         else if (neighbors_vars.neighbors[i].usedBlacklists[1].dsn == dsn) {
-            neighbors_vars.neighbors[i].usedBlacklists[1].channelMap = blacklist;
-         }
-         else {
-            openserial_printError(COMPONENT_NEIGHBORS,ERR_WRONG_DSN,
-                                 (errorparameter_t)dsn,
-                                 (errorparameter_t)4);
-         }
-         
-         // now we update which is the old blacklist
-         if (neighbors_vars.neighbors[i].oldestBlacklistIdx == 0) {
-            neighbors_vars.neighbors[i].oldestBlacklistIdx = 1;
-         }
-         else {
-            neighbors_vars.neighbors[i].oldestBlacklistIdx = 0;
-         }
-           
-         openserial_printInfo(COMPONENT_NEIGHBORS, ERR_NEW_BLACKLIST,
-                              (errorparameter_t)blacklist,
-                              (errorparameter_t)0);
-
-         ENABLE_INTERRUPTS();
-         break;
-      }
-   }
-}
-
-/**
-\brief Get one of the two blacklist that should be used with a particular neighbor
-
-\param[in] address The address of the neighbor
-\param[in] oldest TRUE is the oldest blakclist, FALSE if the newest
-
-\returns The used blacklist
-*/ 
-uint16_t neighbors_getUsedBlacklist(uint16_t address, bool oldest) {
-   uint8_t i, blacklistIdx;
-  
-   // iterate through neighbor table
-   for (i=0;i<MAXNUMNEIGHBORS;i++) {
-      if (isThisRowMatching(address, i)) {
-         if (oldest == TRUE) {
-            blacklistIdx = neighbors_vars.neighbors[i].oldestBlacklistIdx;
-         }
-         else
-         {
-           if (neighbors_vars.neighbors[i].oldestBlacklistIdx == 1) {
-              blacklistIdx = 0;  
-           }
-           else {
-              blacklistIdx = 1;
-           }
-         }
-         return neighbors_vars.neighbors[i].usedBlacklists[blacklistIdx].channelMap;
-      }
-   }
-   
-   return 0;
-}
-
-/**
-\brief Get the current local blacklist for a particular neighbor
-
-\param[in] address The address of the neighbor
-
-\returns The current blacklist
-*/ 
-uint16_t      neighbors_getCurrentBlacklist(uint16_t address) {
-   uint8_t i;
-   
-   // iterate through neighbor table
-   for (i=0;i<MAXNUMNEIGHBORS;i++) {
-      if (isThisRowMatching(address, i)) {
-         return neighbors_vars.neighbors[i].currentBlacklist;  
-      }
-   }
-   
-   return 0;
-}
-
-/**
-\brief Update the current local blacklist for a particular neighbor depending on a packet event. 
-
-\param[in] address The address of the neighbor
-\param[in] error E_SUCCESS if packet was received. E_FAIL if packet was not received
-\param[in] channel The frequency channel that was used
-\param[in] energy RSSI measurement
-
-*/ 
-void          neighbors_updateCurrentBlacklist(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy) {
-   uint8_t i;
-   
-   // iterate through neighbor table
-   for (i=0;i<MAXNUMNEIGHBORS;i++) {
-      if (isThisRowMatching(address, i)) {
-         
-         // TO-DO update the blacklist
-      }
-   }  
-}
-
-/**
-\brief Increments the blacklist metric and check if it reached the limits. If it is larger than whiteThreshold, reset to 0
-       If it is larger than blackThreshold, set the channel as Blacked
-
-\param[in] neighborRow The neighbor to be analysed
-\param[in] blackThreshold The lower counter to consider a channel as Blacked
-\param[in] whiteThreshold The upper limit to reset the channel as White
-
-*/ 
-void   neighbors_checkBlacklistPeriodic(uint8_t neighborRow, uint8_t blackThreshold, uint8_t whiteThreshold) {
-   uint8_t i;
-  
-   INTERRUPT_DECLARATION();
-   DISABLE_INTERRUPTS();  
-   
-   if (neighbors_vars.neighbors[neighborRow].used) {
-      for (i=0; i<16; i++) {
-         // increment the counter and go back to zero when reaches whiteThreshold
-         neighbors_vars.neighbors[neighborRow].blacklistMetric[i] = (neighbors_vars.neighbors[neighborRow].blacklistMetric[i]+1)%whiteThreshold;  
-       
-         // update the blacklist
-         if (neighbors_vars.neighbors[neighborRow].blacklistMetric[i] > blackThreshold) {
-            neighbors_vars.neighbors[neighborRow].currentBlacklist |= (1 << i);
-         }
-         else {
-            neighbors_vars.neighbors[neighborRow].currentBlacklist &= ~(1 << i);
-         }
-      }
-   }
-   
-   ENABLE_INTERRUPTS();
 }
 
 //===== getters
@@ -616,6 +349,22 @@ void neighbors_indicateRxEB(OpenQueueEntry_t* msg) {
    
    // update routing info
    neighbors_updateMyDAGrankAndNeighborPreference(); 
+}
+
+int8_t neighbors_getRow(uint16_t shortID) {
+   uint8_t i=0;
+   
+   for (i=0;i<MAXNUMNEIGHBORS;i++) {
+      if (isThisRowMatching(shortID,i)) {
+         return i;
+      }
+   }
+ 
+   return -1;
+}
+
+bool neighbors_isRowUsed(uint8_t row) {
+   return neighbors_vars.neighbors[row].used;
 }
 
 //===== managing routing info

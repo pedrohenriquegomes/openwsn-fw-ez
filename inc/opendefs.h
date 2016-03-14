@@ -126,6 +126,7 @@ enum {
    //MAClow
    COMPONENT_IEEE802154                = 0x08,
    COMPONENT_IEEE802154E               = 0x09,
+   COMPONENT_BLACKLIST                 = 0x30,
    
    // all components with higher component id than COMPONENT_IEEE802154E
    // won't be able to get free packets from the queue 
@@ -252,6 +253,7 @@ enum {
    ERR_NEW_BLACKLIST                   = 0x51, // new blacklist from parent: {0}   
    ERR_RCV_BLACKLIST                   = 0x52, // packet received dsn {0} blacklist {1}
    ERR_SND_BLACKLIST                   = 0x53, // packet sent dsn {0} blacklist {1}
+   ERR_INVALID_NEIGHBOR                = 0x54, // invalid neighbor {0}, code location {1}
 };
 
 //=========================== typedef =========================================
