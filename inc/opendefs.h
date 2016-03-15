@@ -254,6 +254,7 @@ enum {
    ERR_RCV_BLACKLIST                   = 0x52, // packet received dsn {0} blacklist {1}
    ERR_SND_BLACKLIST                   = 0x53, // packet sent dsn {0} blacklist {1}
    ERR_INVALID_NEIGHBOR                = 0x54, // invalid neighbor {0}, code location {1}
+   ERR_EXPLORE_BLACKLIST               = 0x55, // exploring bad channels, blacklist {0} row {1}
 };
 
 //=========================== typedef =========================================

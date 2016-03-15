@@ -17,8 +17,8 @@
 //=========================== define ==========================================
 
 // **** Set the BLACKLIST type here
-#define BLACKLIST_TIMEOUT_BASED         // if blacklist mechanism is based on timeouts 
-//#define BLACKLIST_MAB_BASED             // if blacklist mechanism is based on Multi-armed bandit
+//#define BLACKLIST_TIMEOUT_BASED         // if blacklist mechanism is based on timeouts 
+#define BLACKLIST_MAB_BASED             // if blacklist mechanism is based on Multi-armed bandit
 
 #ifdef BLACKLIST_TIMEOUT_BASED
    #define BLACKLIST_PERIOD_MS     (1000/MAXNUMNEIGHBORS)    // we check each neighbor every 1 second
@@ -27,6 +27,8 @@
 #endif
 
 #ifdef BLACKLIST_MAB_BASED
+   #define EXPLORE_MODULUS        16       // the 8 worst channels will be explored every (1/EXPLORE_MODULUS) time slots
+   #define BLACK_THRESHOLD        80      // the threshold (in PDR) to be considered for blacking a channel
 #endif
 
 #define DEFAULT_BLACKLIST         0x0000

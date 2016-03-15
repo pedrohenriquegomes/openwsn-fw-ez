@@ -1,5 +1,6 @@
 #include "blacklist.h"
 #include "openserial.h"
+#include "openrandom.h"
 
 //=========================== variables =======================================
 
@@ -21,7 +22,7 @@ void blacklist_init() {
    // clear local variables
    memset(&blacklist_vars,0,sizeof(blacklist_vars_t));
    
-   // set the defautl blacklist
+   // set the default blacklist
    for (i = 0; i < MAXNUMNEIGHBORS; i++)
    {
       blacklist_vars.neighbors[i].usedBlacklists[0].channelMap  = DEFAULT_BLACKLIST;
@@ -36,6 +37,14 @@ void blacklist_init() {
                                 TIMER_PERIODIC,TIME_MS,
                                 blacklist_timer_cb
                           );
+#endif
+
+#ifdef BLACKLIST_MAB_BASED   
+   // set the default blacklist metric to 100
+   for (i = 0; i < MAXNUMNEIGHBORS; i++)
+   {
+      memset(&blacklist_vars.neighbors[i].blacklistMetric, 100, 16);
+   }   
 #endif
    
 }
@@ -246,6 +255,7 @@ uint16_t        blacklist_getCurrentBlacklist(uint16_t address) {
 
 */ 
 void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy) {
+   uint8_t i;
    
    // get the neighbors row
    int8_t row = neighbors_getRow(address);
@@ -267,7 +277,7 @@ void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint
    uint8_t new_reward;
    
    if (error == E_SUCCESS) {
-      new_reward = 10;
+      new_reward = 50;
    }
    else {
       new_reward = 0;
@@ -275,11 +285,33 @@ void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint
    
    // ... and 90% of weight to the old reward
    uint8_t old_reward = blacklist_vars.neighbors[row].blacklistMetric[channel];
-   old_reward *= 9;
-   old_reward \= 10;
+   old_reward = (old_reward / 2) * 1; // old_reward * 0.5
    
    blacklist_vars.neighbors[row].blacklistMetric[channel] = old_reward + new_reward;
    
+   // clean the current blacklist
+   blacklist_vars.neighbors[row].currentBlacklist = 0;
+   
+   // decide if we are going to 'exploit' or 'explore' the channels
+   if (openrandom_get16b()%EXPLORE_MODULUS == 0) {
+      // lets explore the bad channels. here the blacklist is reversed (the bad channels are 0s and the good channels are 1s)
+     for (i=0; i<16; i++) {
+       if (blacklist_vars.neighbors[row].blacklistMetric[i] >= BLACK_THRESHOLD) {
+          blacklist_vars.neighbors[row].currentBlacklist |=  (1 << i);
+       }
+     }
+     
+     openserial_printError(COMPONENT_BLACKLIST, ERR_EXPLORE_BLACKLIST,
+                          (errorparameter_t)blacklist_vars.neighbors[row].currentBlacklist, (errorparameter_t)row);     
+   }
+   else {
+      // lets exploit the good channels. here the blacklist is the normal (the bad channels are 1s and the good channels are 0s)
+     for (i=0; i<16; i++) {
+       if (blacklist_vars.neighbors[row].blacklistMetric[i] < BLACK_THRESHOLD) {
+          blacklist_vars.neighbors[row].currentBlacklist |=  (1 << i);
+       }
+     }
+   }
 #endif  
    
 }
@@ -327,8 +359,11 @@ void blacklist_timer_cb(opentimer_id_t id){
 
 void blacklist_task_cb() {
    
+#ifdef BLACKLIST_TIMEOUT_BASED  
    if(neighbors_isRowUsed(blacklist_vars.curNeighbor)) {
       blacklist_checkBlacklistPeriodic(blacklist_vars.curNeighbor, BLACK_THRESHOLD, WHITE_THRESHOLD);
    }
-   blacklist_vars.curNeighbor = (blacklist_vars.curNeighbor + 1)%MAXNUMNEIGHBORS;  
+   blacklist_vars.curNeighbor = (blacklist_vars.curNeighbor + 1)%MAXNUMNEIGHBORS;
+#endif
+
 }
