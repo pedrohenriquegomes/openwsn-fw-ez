@@ -255,7 +255,7 @@ uint16_t        blacklist_getCurrentBlacklist(uint16_t address) {
 
 */ 
 void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy) {
-   uint8_t i;
+   uint8_t i,j;
    
    // get the neighbors row
    int8_t row = neighbors_getRow(address);
@@ -273,43 +273,74 @@ void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint
 #endif
 
 #ifdef BLACKLIST_MAB_BASED
-   // update the channel metric (reward) with 10% of weight to the new reward ...
+   // update the channel metric (reward) with weight ALPHA_WEIGHT to the new reward ...
    uint8_t new_reward;
    
    if (error == E_SUCCESS) {
-      new_reward = 50;
+      new_reward = ALPHA_WEIGHT; // 1.0 * ALPHA_WEIGHT
    }
    else {
-      new_reward = 0;
+      new_reward = 0;           // 0 * ALPHA_WEIGHT
    }
    
-   // ... and 90% of weight to the old reward
-   uint8_t old_reward = blacklist_vars.neighbors[row].blacklistMetric[channel];
-   old_reward = (old_reward / 2) * 1; // old_reward * 0.5
+   // ... and (100 - ALPHA_WEIGHT) of weight to the old reward
+   uint16_t old_reward = blacklist_vars.neighbors[row].blacklistMetric[channel];
+   old_reward = (old_reward * (100 - ALPHA_WEIGHT)) / 100; // old_reward * (100 - ALPHA_WEIGHT)
    
-   blacklist_vars.neighbors[row].blacklistMetric[channel] = old_reward + new_reward;
+   blacklist_vars.neighbors[row].blacklistMetric[channel] = (uint8_t)old_reward + new_reward;
+      
+   // sort the channel in non-decreasing order of metric
+   uint8_t sorted_channels[16];
+   memset(&sorted_channels,0,16);
    
-   // clean the current blacklist
-   blacklist_vars.neighbors[row].currentBlacklist = 0;
+   for (i=0; i<16; i++) {
+     bool placing = TRUE; 
+     uint8_t moving_ch = 0;
+     uint8_t cur_metric = blacklist_vars.neighbors[row].blacklistMetric[i];
+     for (j=0; j<16; j++) {
+       if (placing) {
+         // we initialy find the place to put the current channel (i)
+         if (blacklist_vars.neighbors[row].blacklistMetric[sorted_channels[j]] >= cur_metric) {
+            placing = FALSE;
+            moving_ch = sorted_channels[j];
+            sorted_channels[j] = i;
+         }
+         else {
+            if (j >= i) {
+               sorted_channels[j] = i;
+               break;
+            }
+         }
+       }
+       else { 
+          // then we move all other channel to the right
+          uint8_t aux_ch = sorted_channels[j];
+          sorted_channels[j] = moving_ch;
+          moving_ch = aux_ch;
+       }
+       if (j >= i) {
+          break;
+       }
+     }
+   }
+   
+   // we set all channels in the blacklist and then clean the ones our arms will evaluate
+   blacklist_vars.neighbors[row].currentBlacklist = 0xffff;
    
    // decide if we are going to 'exploit' or 'explore' the channels
    if (openrandom_get16b()%EXPLORE_MODULUS == 0) {
-      // lets explore the bad channels. here the blacklist is reversed (the bad channels are 0s and the good channels are 1s)
-     for (i=0; i<16; i++) {
-       if (blacklist_vars.neighbors[row].blacklistMetric[i] >= BLACK_THRESHOLD) {
-          blacklist_vars.neighbors[row].currentBlacklist |=  (1 << i);
-       }
+      // lets explore the bad channels. we clean the channel that our arm will evaluate, the N_ARMS worst channels
+     for (i=0; i<N_ARMS; i++) {
+       blacklist_vars.neighbors[row].currentBlacklist &= ~(1 << sorted_channels[i]);
      }
      
      openserial_printError(COMPONENT_BLACKLIST, ERR_EXPLORE_BLACKLIST,
                           (errorparameter_t)blacklist_vars.neighbors[row].currentBlacklist, (errorparameter_t)row);     
    }
    else {
-      // lets exploit the good channels. here the blacklist is the normal (the bad channels are 1s and the good channels are 0s)
-     for (i=0; i<16; i++) {
-       if (blacklist_vars.neighbors[row].blacklistMetric[i] < BLACK_THRESHOLD) {
-          blacklist_vars.neighbors[row].currentBlacklist |=  (1 << i);
-       }
+      // lets exploit the good channels. we clean the channel that our arm will evaluate, the N_ARMS best channels
+     for (i=(16-N_ARMS); i<16; i++) {
+       blacklist_vars.neighbors[row].currentBlacklist &= ~(1 << sorted_channels[i]);
      }
    }
 #endif  
