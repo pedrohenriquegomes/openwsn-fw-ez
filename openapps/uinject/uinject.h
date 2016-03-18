@@ -13,7 +13,15 @@
 
 //=========================== define ==========================================
 
-#define UINJECT_PERIOD_MS 1000
+//#define UINJECT_SEND_PERIODIC             // uinject will send packets periodically
+#define UINJECT_SEND_ONE_PER_SLOTFRAME    // uinject will send one packet per slotframe
+
+#ifdef UINJECT_SEND_PERIODIC
+   #define UINJECT_PERIOD_MS 1000          // uinject period in ms
+#endif
+
+#ifdef UINJECT_SEND_ONE_PER_SLOTFRAME
+#endif
 
 //=========================== typedef =========================================
 

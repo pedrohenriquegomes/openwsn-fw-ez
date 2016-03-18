@@ -25,13 +25,16 @@ void uinject_init() {
    
    // clear local variables
    memset(&uinject_vars,0,sizeof(uinject_vars_t));
-   
+
+#ifdef UINJECT_SEND_PERIODIC   
    // start periodic timer
    uinject_vars.timerId = opentimers_start(
                                 UINJECT_PERIOD_MS,
                                 TIMER_PERIODIC,TIME_MS,
                                 uinject_timer_cb
                           );
+#endif
+
 }
 
 void uinject_sendDone(OpenQueueEntry_t* msg, owerror_t error) {
@@ -122,11 +125,13 @@ void uinject_task_cb() {
    // don't run if not synch
    if (ieee154e_isSynch() == FALSE) return;
    
+#ifdef UINJECT_SEND_PERIODIC
    // don't run on dagroot
    if (idmanager_getIsDAGroot()) {
       opentimers_stop(uinject_vars.timerId);
       return;
    }
+#endif
    
    // if you get here, send a packet
    
