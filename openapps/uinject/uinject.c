@@ -76,6 +76,8 @@ void uinject_receive(OpenQueueEntry_t* pkt) {
       fwd_payload->asn2         = pkt_payload->asn2;
       fwd_payload->asn3         = pkt_payload->asn3;
    
+      memset(&fwd_payload->filling,'F',PAYLOAD_FILLING);
+      
       openserial_printInfo(COMPONENT_UINJECT, ERR_UINJECT_FWD, 
                             (errorparameter_t)pkt_payload->l3_src, 
                             (errorparameter_t)pkt_payload->l3_dst);
@@ -163,6 +165,8 @@ void uinject_task_cb() {
    payload->asn2        = curAsn[2];
    payload->asn3        = curAsn[3];
             
+   memset(&payload->filling,'S',PAYLOAD_FILLING);
+   
    openserial_printInfo(COMPONENT_UINJECT, ERR_UINJECT_SND, 
                         (errorparameter_t)payload->l3_dst, (errorparameter_t)payload->counter);
    
