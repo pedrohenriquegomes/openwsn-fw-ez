@@ -23,18 +23,21 @@
 #ifdef UINJECT_SEND_ONE_PER_SLOTFRAME
 #endif
 
+#define PAYLOAD_FILLING       100
+
 //=========================== typedef =========================================
 
 BEGIN_PACK
 typedef struct {                                 // always written big endian, i.e. MSB in addr[0]
-   l2_ht     l2_hdr;
+   l2_ht     l2_hdr;                             // 7 bytes
    uint16_t  l3_src;
    uint16_t  l3_dst;
    uint16_t  counter;
    uint8_t   asn0;
    uint8_t   asn1;
    uint8_t   asn2;
-   uint8_t   asn3;   
+   uint8_t   asn3;                              // 10 bytes
+   uint8_t   filling[PAYLOAD_FILLING];   
 } uinject_ht;
 END_PACK
 
