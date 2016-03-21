@@ -8,72 +8,24 @@ bool topology_isAcceptablePacket(uint16_t shortID) {
    
    returnVal=FALSE;
    switch (idmanager_getMyShortID()) {
-      case 0x6ce6:
+      case 0xed4f:
          if (
-            shortID==0xedbc||
-            shortID==0x50f4||
-            shortID==0x6658||
-            shortID==0x5890||
-            shortID==0x4ffa||
-            shortID==0xcf11||
-            shortID==0xf361||
-            shortID==0x6300
+            shortID==0xecf2
          ) {
          returnVal=TRUE;
       }
       break;
-      case 0xedbc:
+      case 0xecf2:
          if (
-            shortID==0x6ce6
+            shortID==0xed4f ||
+            shortID==0xecf5
          ) {
          returnVal=TRUE;
       }
       break;
-      case 0x50f4:
+      case 0xecf5:
          if (
-            shortID==0x6ce6
-         ) {
-         returnVal=TRUE;
-      }
-      break;
-      case 0x6658:
-         if (
-            shortID==0x6ce6
-         ) {
-         returnVal=TRUE;
-      }
-      break;
-      case 0x5890:
-         if (
-            shortID==0x6ce6
-         ) {
-         returnVal=TRUE;
-      }
-      break;
-      case 0x4ffa:
-         if (
-            shortID==0x6ce6
-         ) {
-         returnVal=TRUE;
-      }
-      break;
-      case 0xcf11:
-         if (
-            shortID==0x6ce6
-         ) {
-         returnVal=TRUE;
-      }
-      break;
-      case 0xf361:
-         if (
-            shortID==0x6ce6
-         ) {
-         returnVal=TRUE;
-      }
-      break;
-      case 0x6300:
-         if (
-            shortID==0x6ce6
+            shortID==0xecf2
          ) {
          returnVal=TRUE;
       }

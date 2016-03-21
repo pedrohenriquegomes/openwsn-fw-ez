@@ -183,9 +183,9 @@ void    blacklist_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t b
       blacklist_vars.neighbors[row].oldestBlacklistIdx = 0;
    }
            
-   openserial_printInfo(COMPONENT_BLACKLIST, ERR_NEW_BLACKLIST,
-                        (errorparameter_t)blacklist,
-                        (errorparameter_t)0);
+   //openserial_printInfo(COMPONENT_BLACKLIST, ERR_NEW_BLACKLIST,
+   //                     (errorparameter_t)blacklist,
+   //                     (errorparameter_t)0);
 
    ENABLE_INTERRUPTS();
 }
@@ -278,9 +278,17 @@ void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint
    
    if (error == E_SUCCESS) {
       new_reward = ALPHA_WEIGHT; // 1.0 * ALPHA_WEIGHT
+      
+      openserial_printError(COMPONENT_BLACKLIST,ERR_UPDATE_SUCCESS_REWARD,
+                     (errorparameter_t)channel,
+                     (errorparameter_t)row);
    }
    else {
       new_reward = 0;           // 0 * ALPHA_WEIGHT
+      
+      openserial_printError(COMPONENT_BLACKLIST,ERR_UPDATE_FAILED_REWARD,
+                     (errorparameter_t)channel,
+                     (errorparameter_t)row);
    }
    
    // ... and (100 - ALPHA_WEIGHT) of weight to the old reward
