@@ -28,9 +28,8 @@
 
 #ifdef BLACKLIST_MAB_BASED
    #define ALPHA_WEIGHT           20      // weight for the new reward (should vary from 0 to 100). This weight is used in the exponential moving average
-   #define EXPLORE_MODULUS        16      // the 8 worst channels will be explored every (1/EXPLORE_MODULUS) time slots
+   #define EXPLORE_MODULUS        16      // the N_ARMS worst channels will be explored every (1/EXPLORE_MODULUS) time slots
    #define N_ARMS                  8      // the number of channels that will be considered, either for exploiting or for exploring
-   #define BLACK_THRESHOLD        80
 #endif
 
 #define DEFAULT_BLACKLIST         0x0000

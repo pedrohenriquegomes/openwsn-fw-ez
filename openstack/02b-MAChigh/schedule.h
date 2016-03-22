@@ -18,7 +18,7 @@
 The superframe repears over time and can be arbitrarly long.
 */
 #define SLOTFRAME_LENGTH    67          // this should be ideally a prime number (67 @ 15ms ~ 1s slotframe)
-#define NUM_EB_SLOTS         3
+#define NUM_EB_SLOTS         5
 
 #define NUM_TXRX_SLOTS       0
 #define NUM_UNICAST_SLOTS    4

@@ -257,11 +257,11 @@
         </option>
         <option>
           <name>CCListCMnemonics</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCListCMessages</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCListAssFile</name>
@@ -269,7 +269,7 @@
         </option>
         <option>
           <name>CCListAssSource</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCEnableRemarks</name>
@@ -342,7 +342,7 @@
         </option>
         <option>
           <name>CCCompilerRuntimeInfo</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>IDoubleSize</name>
@@ -378,7 +378,7 @@
         </option>
         <option>
           <name>CCOverrideModuleTypeDefault</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCRadioModuleType</name>
@@ -406,7 +406,7 @@
           <state>$PROJ_DIR$\..\..\..\openstack\02b-MAChigh\</state>
           <state>$PROJ_DIR$\..\..\..\openstack\cross-layers\</state>
           <state>$PROJ_DIR$\..\..\..\openapps\</state>
-          <state>$PROJ_DIR$\..\..\..\openapps\light\</state>
+          <state>$PROJ_DIR$\..\..\..\openapps\uinject\</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -820,7 +820,7 @@
         </option>
         <option>
           <name>XclFile</name>
-          <state>$TOOLKIT_DIR$\CONFIG\lnk430F1611.xcl</state>
+          <state>$TOOLKIT_DIR$\config\linker\lnk430f1611.xcl</state>
         </option>
         <option>
           <name>XclFileSlave</name>
@@ -2431,12 +2431,12 @@
   <group>
     <name>openapps</name>
     <group>
-      <name>light</name>
+      <name>uinject</name>
       <file>
-        <name>$PROJ_DIR$\..\..\..\openapps\light\light.c</name>
+        <name>$PROJ_DIR$\..\..\..\openapps\uinject\uinject.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\openapps\light\light.h</name>
+        <name>$PROJ_DIR$\..\..\..\openapps\uinject\uinject.h</name>
       </file>
     </group>
     <file>
@@ -2457,6 +2457,12 @@
         <name>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\adaptive_sync.h</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\blacklist.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\blacklist.h</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\..\..\openstack\02a-MAClow\IEEE802154E.c</name>
       </file>
       <file>
@@ -2471,6 +2477,9 @@
     </group>
     <group>
       <name>02b-MAChigh</name>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\openstack\02b-MAChigh\ext_schedule.c</name>
+      </file>
       <file>
         <name>$PROJ_DIR$\..\..\..\openstack\02b-MAChigh\neighbors.c</name>
       </file>

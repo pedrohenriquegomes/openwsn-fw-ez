@@ -183,9 +183,9 @@ void    blacklist_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t b
       blacklist_vars.neighbors[row].oldestBlacklistIdx = 0;
    }
            
-   //openserial_printInfo(COMPONENT_BLACKLIST, ERR_NEW_BLACKLIST,
-   //                     (errorparameter_t)blacklist,
-   //                     (errorparameter_t)0);
+   openserial_printInfo(COMPONENT_BLACKLIST, ERR_NEW_BLACKLIST,
+                        (errorparameter_t)blacklist,
+                        (errorparameter_t)0);
 
    ENABLE_INTERRUPTS();
 }
