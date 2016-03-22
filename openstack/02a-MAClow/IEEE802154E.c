@@ -925,14 +925,13 @@ port_INLINE void activity_ti2() {
    radio_txEnable();
 
    payload = (l2_ht *)ieee154e_vars.localCopyForTransmission.payload;
-   
+         
    if (isPktBroadcast(ieee154e_vars.dataToSend) == FALSE && neighbors_isPreferredParent(payload->dst)) {
       // I am not sending a broadcast and I am a child, store the DSN in the neighbor list   
       blacklist_updateBlacklistTxData(payload->dst, payload->dsn);
       
-      openserial_printError(COMPONENT_IEEE802154E,ERR_SND_BLACKLIST,
-                           (errorparameter_t)payload->dsn,
-                           (errorparameter_t)blacklist);
+      openserial_printError(COMPONENT_IEEE802154E, ERR_SND_BLACKLIST,
+                           (errorparameter_t)payload->dsn, (errorparameter_t)blacklist);
    }
    
    ieee154e_vars.radioOnInit=radio_getTimerValue();
@@ -1424,7 +1423,7 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
       if(eb_payload->l2_hdr.dst != BROADCAST_ID) {
         
          if (eb_payload->l2_hdr.dst == idmanager_getMyShortID()) {
-           // lets send the ACK
+            // lets send the ACK
           
             // if I am the parent and I am going to send an ACK, I have to store the DSN in the neighbors blacklist
             if (!neighbors_isPreferredParent(eb_payload->l2_hdr.src))
@@ -1432,13 +1431,11 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
                 blacklist_updateBlacklistRxData(eb_payload->l2_hdr.src, eb_payload->l2_hdr.dsn, ieee154e_vars.freq - 11);
                 
                 openserial_printError(COMPONENT_IEEE802154E,ERR_RCV_BLACKLIST,
-                     (errorparameter_t)eb_payload->l2_hdr.dsn,
-                     (errorparameter_t)ieee154e_vars.lastBlacklist);
+                                     (errorparameter_t)eb_payload->l2_hdr.dsn, (errorparameter_t)ieee154e_vars.lastBlacklist);
             }
             
             // update the blacklist considering a sucessful reception
             blacklist_updateCurrentBlacklist(eb_payload->l2_hdr.src, E_SUCCESS, ieee154e_vars.freq - 11, ieee154e_vars.dataReceived->l1_rssi);
-           
            
             // arm rt5
             radiotimer_schedule(DURATION_rt5);
@@ -1539,6 +1536,7 @@ port_INLINE void activity_ri6() {
    
    // enable the radio in Tx mode. This does not send that packet.
    radio_txEnable();
+   
    ieee154e_vars.radioOnInit=radio_getTimerValue();
    ieee154e_vars.radioOnThisSlot=TRUE;
    // arm rt6

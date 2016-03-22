@@ -24,7 +24,7 @@
 #ifdef UINJECT_SEND_ONE_PER_SLOTFRAME
 #endif
 
-#define PAYLOAD_FILLING       100
+#define PAYLOAD_FILLING       20
 
 //=========================== typedef =========================================
 

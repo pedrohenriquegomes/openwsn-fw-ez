@@ -149,13 +149,14 @@ void blacklist_updateBlacklistRxData(uint16_t address, uint8_t dsn, uint8_t chan
 
 */ 
 void    blacklist_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t blacklist) {
+   bool newBlacklist = FALSE;
    
    // get the neighbors row
    int8_t row = neighbors_getRow(address);
    
    if (row == -1) {
       openserial_printError(COMPONENT_BLACKLIST, ERR_INVALID_NEIGHBOR,
-                            (errorparameter_t)address, (errorparameter_t)2);
+                           (errorparameter_t)address, (errorparameter_t)2);
       return;
    }
 
@@ -164,10 +165,16 @@ void    blacklist_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t b
       
    // found the entries for address. One entry should have DSN and it need to be updated
    if (blacklist_vars.neighbors[row].usedBlacklists[0].dsn == dsn) {
-      blacklist_vars.neighbors[row].usedBlacklists[0].channelMap = blacklist;
+      if (blacklist_vars.neighbors[row].usedBlacklists[0].channelMap != blacklist) {
+         blacklist_vars.neighbors[row].usedBlacklists[0].channelMap = blacklist;
+         newBlacklist = TRUE;
+      }
    }
    else if (blacklist_vars.neighbors[row].usedBlacklists[1].dsn == dsn) {
-      blacklist_vars.neighbors[row].usedBlacklists[1].channelMap = blacklist;
+      if (blacklist_vars.neighbors[row].usedBlacklists[1].channelMap != blacklist) {  
+         blacklist_vars.neighbors[row].usedBlacklists[1].channelMap = blacklist;
+         newBlacklist = TRUE;
+      }
    }
    else {
       openserial_printError(COMPONENT_BLACKLIST,ERR_WRONG_DSN,
@@ -183,10 +190,12 @@ void    blacklist_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t b
       blacklist_vars.neighbors[row].oldestBlacklistIdx = 0;
    }
            
-   openserial_printInfo(COMPONENT_BLACKLIST, ERR_NEW_BLACKLIST,
-                        (errorparameter_t)blacklist,
-                        (errorparameter_t)0);
-
+   if (newBlacklist) {
+      openserial_printInfo(COMPONENT_BLACKLIST, ERR_NEW_BLACKLIST,
+                          (errorparameter_t)blacklist,
+                          (errorparameter_t)0);
+   }
+   
    ENABLE_INTERRUPTS();
 }
 
@@ -280,15 +289,13 @@ void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint
       new_reward = ALPHA_WEIGHT; // 1.0 * ALPHA_WEIGHT
       
       openserial_printError(COMPONENT_BLACKLIST,ERR_UPDATE_SUCCESS_REWARD,
-                     (errorparameter_t)channel,
-                     (errorparameter_t)row);
+                     (errorparameter_t)channel,(errorparameter_t)row);
    }
    else {
       new_reward = 0;           // 0 * ALPHA_WEIGHT
       
       openserial_printError(COMPONENT_BLACKLIST,ERR_UPDATE_FAILED_REWARD,
-                     (errorparameter_t)channel,
-                     (errorparameter_t)row);
+                     (errorparameter_t)channel,(errorparameter_t)row);
    }
    
    // ... and (100 - ALPHA_WEIGHT) of weight to the old reward
