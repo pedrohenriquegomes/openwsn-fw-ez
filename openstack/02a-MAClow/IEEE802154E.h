@@ -39,7 +39,7 @@ static const uint8_t chTemplate_eb[] = {
 #define LONGTYPE_ACK              0xa0a0  
 
 #define SYNCHRONIZING_CHANNEL       26 // channel the mote listens on to synchronize
-#define TXRETRIES                    2 // number of MAC retries before declaring failed
+#define TXRETRIES                    0 // number of MAC retries before declaring failed
 #define TX_POWER                     7 // 1=-25dBm, 7=-15dBm, 31=0dBm (max value)
 #define RESYNCHRONIZATIONGUARD      60 // in 32kHz ticks. min distance to the end of the slot to successfully synchronize
 #define US_PER_TICK                 30 // number of us per 32kHz clock tick
