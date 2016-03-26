@@ -122,6 +122,7 @@ void task_sixtopNotifSendDone(void) {
          TRUE,
          &msg->l2_asn
       );
+      sixtop_vars.dsn++;        // this operation was performed in the pkt transmission before
    } else {
       neighbors_indicateTx(
          payload->dst,
@@ -242,7 +243,7 @@ owerror_t sixtop_send_internal(OpenQueueEntry_t* msg) {
    }
    
    // record this packet's dsn (for matching the ACK)
-   ((l2_ht *)(msg->payload))->dsn = sixtop_vars.dsn++;
+   ((l2_ht *)(msg->payload))->dsn = sixtop_vars.dsn;        // the DSN increment now is done every time we have an ACK received (task_sixtopNotifSendDone function)
    msg->l2_dsn = ((l2_ht *)(msg->payload))->dsn;
    
    // this is a new packet which I never attempted to send

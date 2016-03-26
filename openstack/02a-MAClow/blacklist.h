@@ -49,8 +49,8 @@ typedef struct {
    // since we may have not yet negotiated with the neighbor. this is the blacklist that should be updated every sucessful or failed packet reception
    blacklistEntry_t     usedBlacklists[2];      // these are the blacklists currently being used. we need two because we only switch to the newest when
    // we get a confirmation from the neighbor. the confirmation comes when we receive a packet with newer DSN
-   uint8_t              oldestBlacklistIdx;        // either 0 or 1 (index of the oldest blacklist).
-   uint8_t              blacklistMetric[16];       // this metric is used for including or removing a channel from the blacklist. Its meaning depends on the type
+   uint8_t              oldestBlacklistIdx;     // either 0 or 1 (index of the oldest blacklist).
+   uint8_t              blacklistMetric[16];    // this metric is used for including or removing a channel from the blacklist. Its meaning depends on the type
    // of blacklist mechanism being used (timeout-based or MAB-based)  
 } blacklistNeighborRow_t;
 END_PACK

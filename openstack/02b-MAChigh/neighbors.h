@@ -11,7 +11,7 @@
 
 //=========================== define ==========================================
 
-#define MAXNUMNEIGHBORS           20
+#define MAXNUMNEIGHBORS           20    // it needs to be at most 10 for telosb
 #define AVERAGEDEGREE             15
 #define MAXPREFERENCE             2
 #define BADNEIGHBORMAXRSSI        -70 // dBm
@@ -47,16 +47,6 @@ typedef struct {
    uint8_t         row;
    neighborRow_t   neighborEntry;
 } debugNeighborEntry_t;
-END_PACK
-
-BEGIN_PACK
-typedef struct {
-   uint8_t         last_addr_byte;   // last byte of the neighbor's address
-   int8_t          rssi;
-   uint8_t         parentPreference;
-   dagrank_t       DAGrank;
-   uint16_t        asn; 
-} netDebugNeigborEntry_t;
 END_PACK
 
 //=========================== module variables ================================
