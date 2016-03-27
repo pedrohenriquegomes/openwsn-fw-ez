@@ -23,13 +23,13 @@ bool topology_isAcceptablePacket(uint16_t shortID) {
             //shortID==0xed4f ||
             //shortID==0xecf5
             shortID==0x5a53 ||
-            shortID==0x13cf
+            shortID==0x6e29
          ) {
          returnVal=TRUE;
       }
       break;
       //case 0xecf5:
-      case 0x13cf:
+      case 0x6e29:
          if (
             //shortID==0xecf2
             shortID==0x89a5

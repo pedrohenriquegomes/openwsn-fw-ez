@@ -49,6 +49,33 @@ void blacklist_init() {
    
 }
 
+void    blacklist_reset(uint8_t neighborRow) {
+   uint8_t i;
+   
+   // clean the neighbor info
+   memset(&blacklist_vars.neighbors[neighborRow], 0, sizeof(blacklistNeighborRow_t));
+   
+   // set the default blacklist
+   blacklist_vars.neighbors[neighborRow].usedBlacklists[0].channelMap  = DEFAULT_BLACKLIST;
+   blacklist_vars.neighbors[neighborRow].usedBlacklists[1].channelMap  = DEFAULT_BLACKLIST;       
+   blacklist_vars.neighbors[neighborRow].currentBlacklist              = DEFAULT_BLACKLIST;
+      
+#ifdef BLACKLIST_MAB_BASED   
+   // set the default blacklist metric to 100
+   for (i = 0; i < MAXNUMNEIGHBORS; i++) {
+      memset(&blacklist_vars.neighbors[i].blacklistMetric, 100, 16);
+   }   
+#endif  
+}
+
+void    blacklist_resetAll(void) {
+   uint8_t i;
+   
+   for (i = 0; i < MAXNUMNEIGHBORS; i++) {
+      blacklist_reset(i);
+   }
+}
+
 /**
 \brief It is executed when I am a child and will send a data packet and will wait for the blacklist from my parent
        I need to check if I already have DSN in my list. If so, do nothing. If not, delete the entry not in use and create a new one
@@ -290,12 +317,23 @@ void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint
       
       openserial_printError(COMPONENT_BLACKLIST,ERR_UPDATE_SUCCESS_REWARD,
                      (errorparameter_t)channel,(errorparameter_t)row);
+      
+      // reset the number of packets missed in a row
+      blacklist_vars.neighbors[row].n_missed_pkts = 0;
    }
    else {
       new_reward = 0;           // 0 * ALPHA_WEIGHT
       
       openserial_printError(COMPONENT_BLACKLIST,ERR_UPDATE_FAILED_REWARD,
                      (errorparameter_t)channel,(errorparameter_t)row);
+      
+      // detect if we missed too many packets in a row
+      if (blacklist_vars.neighbors[row].n_missed_pkts++ > N_MAX_MISSED) {
+         openserial_printError(COMPONENT_BLACKLIST,ERR_BLACKLIST_DESYNC,
+                     (errorparameter_t)row,(errorparameter_t)0);
+         blacklist_reset(row);
+         return;
+      }
    }
    
    // ... and (100 - ALPHA_WEIGHT) of weight to the old reward

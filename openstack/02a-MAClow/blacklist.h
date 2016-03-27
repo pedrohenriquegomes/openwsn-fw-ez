@@ -28,8 +28,9 @@
 
 #ifdef BLACKLIST_MAB_BASED
    #define ALPHA_WEIGHT           20      // weight for the new reward (should vary from 0 to 100). This weight is used in the exponential moving average
-   #define EXPLORE_MODULUS        16      // the N_ARMS worst channels will be explored every (1/EXPLORE_MODULUS) time slots
+   #define EXPLORE_MODULUS        10      // the N_ARMS worst channels will be explored every (1/EXPLORE_MODULUS) trials
    #define N_ARMS                  8      // the number of channels that will be considered, either for exploiting or for exploring
+   #define N_MAX_MISSED           15      // max number of packets missed in a row before detecting desync of blacklist
 #endif
 
 #define DEFAULT_BLACKLIST         0x0000
@@ -51,7 +52,10 @@ typedef struct {
    // we get a confirmation from the neighbor. the confirmation comes when we receive a packet with newer DSN
    uint8_t              oldestBlacklistIdx;     // either 0 or 1 (index of the oldest blacklist).
    uint8_t              blacklistMetric[16];    // this metric is used for including or removing a channel from the blacklist. Its meaning depends on the type
-   // of blacklist mechanism being used (timeout-based or MAB-based)  
+   // of blacklist mechanism being used (timeout-based or MAB-based)
+#ifdef BLACKLIST_MAB_BASED   
+   uint8_t              n_missed_pkts;          // number of packets missed in a row. Used for detecting desync of blacklist
+#endif
 } blacklistNeighborRow_t;
 END_PACK
 
@@ -67,6 +71,8 @@ typedef struct {
 //=========================== prototypes ======================================
 
 void            blacklist_init(void);
+void            blacklist_reset(uint8_t neighborRow);
+void            blacklist_resetAll(void);
 void 	        blacklist_updateBlacklistTxData(uint16_t address, uint8_t dsn);
 void 	        blacklist_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t blacklist);
 void 	        blacklist_updateBlacklistRxData(uint16_t address, uint8_t dsn, uint8_t channel);
