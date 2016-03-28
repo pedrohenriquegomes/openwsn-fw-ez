@@ -50,10 +50,6 @@ static const uint8_t chTemplate_eb[] = {
 #define LENGTH_IEEE154_MAX         128 // max length of a valid radio packet  
 #define DUTY_CYCLE_WINDOW_LIMIT    (0xFFFFFFFF>>1) // limit of the dutycycle window
 
-#define EB_PERIOD_TIMER   2000 // every 2 seconds increase the EB period by a certain amount
-#define EB_PERIOD_AMOUNT     2 // increase by 1 (multiples of 100 ms)
-#define EB_PERIOD_MAX       20 // max EB interval will be 10 (multiples of 100 ms)
-
 //15.4e information elements related
 #define IEEE802154E_PAYLOAD_DESC_LEN_SHIFT                 0x04
 #define IEEE802154E_PAYLOAD_DESC_GROUP_ID_MLME             (1<<11)
