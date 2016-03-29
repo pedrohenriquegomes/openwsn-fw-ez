@@ -930,8 +930,8 @@ port_INLINE void activity_ti2() {
       // I am not sending a broadcast and I am a child, store the DSN in the neighbor list   
       blacklist_updateBlacklistTxData(payload->dst, payload->dsn);
       
-      openserial_printError(COMPONENT_IEEE802154E, ERR_SND_BLACKLIST,
-                           (errorparameter_t)payload->dsn, (errorparameter_t)blacklist);
+      //openserial_printError(COMPONENT_IEEE802154E, ERR_SND_BLACKLIST,
+      //                     (errorparameter_t)payload->dsn, (errorparameter_t)blacklist);
    }
    
    ieee154e_vars.radioOnInit=radio_getTimerValue();
@@ -1430,8 +1430,8 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
             {
                 blacklist_updateBlacklistRxData(eb_payload->l2_hdr.src, eb_payload->l2_hdr.dsn, ieee154e_vars.freq - 11);
                 
-                openserial_printError(COMPONENT_IEEE802154E,ERR_RCV_BLACKLIST,
-                                     (errorparameter_t)eb_payload->l2_hdr.dsn, (errorparameter_t)ieee154e_vars.lastBlacklist);
+                //openserial_printError(COMPONENT_IEEE802154E,ERR_RCV_BLACKLIST,
+                //                     (errorparameter_t)eb_payload->l2_hdr.dsn, (errorparameter_t)ieee154e_vars.lastBlacklist);
             }
             
             // update the blacklist considering a sucessful reception

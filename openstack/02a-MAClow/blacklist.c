@@ -315,8 +315,8 @@ void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint
    if (error == E_SUCCESS) {
       new_reward = ALPHA_WEIGHT; // 1.0 * ALPHA_WEIGHT
       
-      openserial_printError(COMPONENT_BLACKLIST,ERR_UPDATE_SUCCESS_REWARD,
-                     (errorparameter_t)channel,(errorparameter_t)row);
+      //openserial_printError(COMPONENT_BLACKLIST,ERR_UPDATE_SUCCESS_REWARD,
+      //               (errorparameter_t)channel,(errorparameter_t)row);
       
       // reset the number of packets missed in a row
       blacklist_vars.neighbors[row].n_missed_pkts = 0;
@@ -324,8 +324,8 @@ void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint
    else {
       new_reward = 0;           // 0 * ALPHA_WEIGHT
       
-      openserial_printError(COMPONENT_BLACKLIST,ERR_UPDATE_FAILED_REWARD,
-                     (errorparameter_t)channel,(errorparameter_t)row);
+      //openserial_printError(COMPONENT_BLACKLIST,ERR_UPDATE_FAILED_REWARD,
+      //               (errorparameter_t)channel,(errorparameter_t)row);
       
       // detect if we missed too many packets in a row
       if (blacklist_vars.neighbors[row].n_missed_pkts++ > N_MAX_MISSED) {
