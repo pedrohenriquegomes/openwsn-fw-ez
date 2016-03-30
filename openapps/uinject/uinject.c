@@ -82,8 +82,8 @@ void uinject_receive(OpenQueueEntry_t* pkt) {
       memset(&fwd_payload->filling,'F',PAYLOAD_FILLING);
       
       openserial_printInfo(COMPONENT_UINJECT, ERR_UINJECT_FWD, 
-                            (errorparameter_t)pkt_payload->l3_src, 
-                            (errorparameter_t)pkt_payload->l3_dst);
+                          (errorparameter_t)pkt_payload->l3_src, 
+                          (errorparameter_t)nextHop);
       
       if ((sixtop_send(fwd))==E_FAIL) {
          openqueue_freePacketBuffer(fwd);
