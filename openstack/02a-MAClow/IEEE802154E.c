@@ -828,9 +828,9 @@ port_INLINE void activity_ti1ORri1() {
             
       case CELLTYPE_TXRX:
          // transmit with probability 1/2
-         //if (openrandom_get16b() & 0x01) {
+         if (openrandom_get16b() & 0x01) {
             ieee154e_vars.dataToSend = openqueue_macGetDataPacket();
-         //}
+         }
          
          if (ieee154e_vars.dataToSend != NULL) {
             // transmit
