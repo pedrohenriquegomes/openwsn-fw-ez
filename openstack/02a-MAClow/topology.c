@@ -83,8 +83,7 @@ bool topology_isAcceptablePacket(uint16_t shortID) {
             shortID==0x6ce6||
             shortID==0x4d6a||
             shortID==0x46a3||
-            shortID==0x41c9||
-            shortID==0x4527
+            shortID==0x41c9
          ) {
          returnVal=TRUE;
       }
@@ -102,7 +101,8 @@ bool topology_isAcceptablePacket(uint16_t shortID) {
       case 0x62b9:
          if (
             shortID==0x6ce6||
-            shortID==0x5517
+            shortID==0x5517||
+            shortID==0x4527
          ) {
          returnVal=TRUE;
       }
@@ -141,7 +141,8 @@ bool topology_isAcceptablePacket(uint16_t shortID) {
          if (
             shortID==0x4ffa||
             shortID==0x5966||
-            shortID==0xea5d
+            shortID==0xea5d||
+            shortID==0xf23f
          ) {
          returnVal=TRUE;
       }
@@ -149,10 +150,9 @@ bool topology_isAcceptablePacket(uint16_t shortID) {
       case 0xcdeb:
          if (
             shortID==0xf361||
+            shortID==0x667e||
             shortID==0x1d33||
-            shortID==0x117a||
-            shortID==0x6fb1||
-            shortID==0xf23f
+            shortID==0x6fb1
          ) {
          returnVal=TRUE;
       }
@@ -174,6 +174,7 @@ bool topology_isAcceptablePacket(uint16_t shortID) {
       case 0x4d6a:
          if (
             shortID==0x6300||
+            shortID==0xe886||
             shortID==0x4d05
          ) {
          returnVal=TRUE;
@@ -181,16 +182,15 @@ bool topology_isAcceptablePacket(uint16_t shortID) {
       break;
       case 0x7233:
          if (
-            shortID==0x79b6||
-            shortID==0xe886||
-            shortID==0x667e
+            shortID==0x79b6
          ) {
          returnVal=TRUE;
       }
       break;
       case 0x4527:
          if (
-            shortID==0x6300
+            shortID==0x62b9||
+            shortID==0x117a
          ) {
          returnVal=TRUE;
       }
@@ -228,7 +228,7 @@ bool topology_isAcceptablePacket(uint16_t shortID) {
       break;
       case 0xe886:
          if (
-            shortID==0x7233
+            shortID==0x4d6a
          ) {
          returnVal=TRUE;
       }
@@ -263,7 +263,7 @@ bool topology_isAcceptablePacket(uint16_t shortID) {
       break;
       case 0x667e:
          if (
-            shortID==0x7233
+            shortID==0xcdeb
          ) {
          returnVal=TRUE;
       }
@@ -286,7 +286,7 @@ bool topology_isAcceptablePacket(uint16_t shortID) {
       break;
       case 0x117a:
          if (
-            shortID==0xcdeb
+            shortID==0x4527
          ) {
          returnVal=TRUE;
       }
@@ -321,7 +321,7 @@ bool topology_isAcceptablePacket(uint16_t shortID) {
       break;
       case 0xf23f:
          if (
-            shortID==0xcdeb
+            shortID==0x76e7
          ) {
          returnVal=TRUE;
       }
