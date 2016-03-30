@@ -107,7 +107,7 @@ void ieee154e_init() {
    memset(&ieee154e_dbg,0,sizeof(ieee154e_dbg_t));
    
    // set 0 to start FHSS and SYNCHRONIZING_CHANNEL to force the whole network to work on a single channel
-   ieee154e_vars.singleChannel     = 0;
+   ieee154e_vars.singleChannel     = SYNCHRONIZING_CHANNEL;
    
    ieee154e_vars.isSecurityEnabled = FALSE;
    // default hopping template
