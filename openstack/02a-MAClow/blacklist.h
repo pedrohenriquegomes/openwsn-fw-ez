@@ -17,8 +17,9 @@
 //=========================== define ==========================================
 
 // **** Set the BLACKLIST type here
+#define BLACKLIST_DISABLED
 //#define BLACKLIST_TIMEOUT_BASED         // if blacklist mechanism is based on timeouts 
-#define BLACKLIST_MAB_BASED             // if blacklist mechanism is based on Multi-armed bandit
+//#define BLACKLIST_MAB_BASED             // if blacklist mechanism is based on Multi-armed bandit
 
 #ifdef BLACKLIST_TIMEOUT_BASED
    #define BLACKLIST_PERIOD_MS     (1000/MAXNUMNEIGHBORS)    // we check each neighbor every 1 second
