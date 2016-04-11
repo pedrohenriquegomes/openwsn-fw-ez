@@ -96,7 +96,8 @@ uint16_t        blacklist_getUsedBlacklist(uint16_t address, bool oldest);
 uint8_t*        blacklist_getUsedRank(uint16_t address, bool oldest);
 uint16_t        blacklist_getCurrentBlacklist(uint16_t address);
 uint8_t         blacklist_getMABPolicy(void);
-void            blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy);
+void            blacklist_updateCurrentBlacklistRx(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy);
+void            blacklist_updateCurrentBlacklistTx(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy);
 void            blacklist_checkBlacklistPeriodic(uint8_t neighborRow, uint8_t blackThreshold, uint8_t whiteThreshold);
 
 /**

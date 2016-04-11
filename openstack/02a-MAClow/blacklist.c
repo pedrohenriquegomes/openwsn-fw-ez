@@ -413,7 +413,7 @@ port_INLINE     uint8_t blacklist_getMABPolicy(void) {
 \param[in] energy RSSI measurement
 
 */ 
-void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy) {
+void    blacklist_updateCurrentBlacklistRx(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy) {
    uint8_t i, j;
    
    // get the neighbors row
@@ -547,6 +547,53 @@ void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint
    
 }
 
+void    blacklist_updateCurrentBlacklistTx(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy) {
+  
+   // get the neighbors row
+   int8_t row = neighbors_getRow(address);
+
+   if (row == -1) {
+      return;
+   }
+
+   // print status
+   if (error == E_SUCCESS) {
+      openserial_printError(COMPONENT_BLACKLIST,ERR_UPDATE_SUCCESS_REWARD,
+                           (errorparameter_t)channel,(errorparameter_t)row);
+   }
+   else {
+      openserial_printError(COMPONENT_BLACKLIST,ERR_UPDATE_FAILED_REWARD,
+                           (errorparameter_t)channel,(errorparameter_t)row);
+   }
+   
+#ifdef BLACKLIST_DISABLED
+   return;
+#endif
+
+#ifdef BLACKLIST_TIMEOUT
+   if (error == E_SUCCESS) {
+      // if our blacklist mechanism is based on timeout, let clean the blacklist of this node
+      blacklist_vars.neighbors[row].blacklistMetric[channel] = 0;
+   }
+#endif
+
+#ifdef BLACKLIST_MAB
+   if (error == E_SUCCESS) {
+      // reset the number of packets missed in a row
+      blacklist_vars.neighbors[row].n_missed_pkts = 0;
+   }
+   else {
+      // detect if we missed too many packets in a row
+      if (blacklist_vars.neighbors[row].n_missed_pkts++ > N_MAX_MISSED) {
+         openserial_printError(COMPONENT_BLACKLIST,ERR_BLACKLIST_DESYNC,
+                     (errorparameter_t)row,(errorparameter_t)0);
+         blacklist_reset(row);
+         return;
+      }
+   }
+#endif
+}
+   
 /**
 \brief Increments the blacklist metric and check if it reached the limits. If it is larger than whiteThreshold, reset to 0
        If it is larger than blackThreshold, set the channel as Blacked

@@ -556,8 +556,7 @@ port_INLINE void activity_synchronize_endOfFrame(PORT_RADIOTIMER_WIDTH capturedT
    if (ieee154e_vars.dataReceived==NULL) {
       // log the error
       openserial_printError(COMPONENT_IEEE802154E,ERR_NO_FREE_PACKET_BUFFER,
-                            (errorparameter_t)0,
-                            (errorparameter_t)0);
+                            (errorparameter_t)0, (errorparameter_t)0);
       // abort
       endSlot();
       return;
@@ -1110,6 +1109,11 @@ port_INLINE void activity_tie5() {
       ieee154e_vars.dataToSend->owner = COMPONENT_SIXTOP_TO_IEEE802154E;
    }
    
+   // update blacklist metric
+   if (schedule_getType() == CELLTYPE_TX) {
+      blacklist_updateCurrentBlacklistTx(schedule_getNeighbor(), E_FAIL, ieee154e_vars.freq - 11, ieee154e_vars.dataReceived->l1_rssi);
+   }
+   
    // reset local variable
    ieee154e_vars.dataToSend = NULL;
    
@@ -1159,7 +1163,7 @@ port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
    if (ieee154e_vars.ackReceived==NULL) {
       // log the error
       openserial_printError(COMPONENT_IEEE802154E,ERR_NO_FREE_PACKET_BUFFER,
-                            (errorparameter_t)0, (errorparameter_t)0);
+                            (errorparameter_t)1, (errorparameter_t)0);
       // abort
       endSlot();
       return;
@@ -1238,6 +1242,9 @@ port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
          }
          //blacklist_updateBlacklistRxAck(ack_payload->l2_hdr.src, ack_payload->l2_hdr.dsn, ack_payload->blacklist, ack_payload->channelrank);
          blacklist_updateBlacklistRxAck(ack_payload->l2_hdr.src, ack_payload->l2_hdr.dsn, ack_payload->blacklist, rank);
+         
+         // update blacklist metric
+         blacklist_updateCurrentBlacklistTx(ack_payload->l2_hdr.src, E_SUCCESS, ieee154e_vars.freq - 11, ieee154e_vars.dataReceived->l1_rssi);
       }
       
       // inform schedule of successful transmission
@@ -1340,7 +1347,7 @@ port_INLINE void activity_ri3() {
 port_INLINE void activity_rie2() {
    // update the blacklist considering a failed reception
    if (schedule_getType() == CELLTYPE_RX) {
-      blacklist_updateCurrentBlacklist(schedule_getNeighbor(), E_FAIL, ieee154e_vars.freq - 11, ieee154e_vars.dataReceived->l1_rssi);
+      blacklist_updateCurrentBlacklistRx(schedule_getNeighbor(), E_FAIL, ieee154e_vars.freq - 11, ieee154e_vars.dataReceived->l1_rssi);
    }
    
    // abort
@@ -1395,8 +1402,7 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
    if (ieee154e_vars.dataReceived==NULL) {
       // log the error
       openserial_printError(COMPONENT_IEEE802154E,ERR_NO_FREE_PACKET_BUFFER,
-                            (errorparameter_t)0,
-                            (errorparameter_t)0);
+                            (errorparameter_t)2, (errorparameter_t)0);
       // abort
       endSlot();
       return;
@@ -1477,7 +1483,7 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
             }
             
             // update the blacklist considering a sucessful reception
-            blacklist_updateCurrentBlacklist(eb_payload->l2_hdr.src, E_SUCCESS, ieee154e_vars.freq - 11, ieee154e_vars.dataReceived->l1_rssi);
+            blacklist_updateCurrentBlacklistRx(eb_payload->l2_hdr.src, E_SUCCESS, ieee154e_vars.freq - 11, ieee154e_vars.dataReceived->l1_rssi);
            
             // arm rt5
             radiotimer_schedule(DURATION_rt5);
@@ -1534,8 +1540,8 @@ port_INLINE void activity_ri6() {
    if (ieee154e_vars.ackToSend==NULL) {
       // log the error
       openserial_printError(COMPONENT_IEEE802154E,ERR_NO_FREE_PACKET_BUFFER,
-                            (errorparameter_t)0,
-                            (errorparameter_t)0);
+                            (errorparameter_t)3, (errorparameter_t)0);
+      
       // indicate we received a packet anyway (we don't want to loose any)
       notif_receive(ieee154e_vars.dataReceived);
       // free local variable
