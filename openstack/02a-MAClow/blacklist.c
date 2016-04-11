@@ -17,7 +17,7 @@ void blacklist_task_cb(void);
 \brief Initializes this module.
 */
 void blacklist_init() {
-   uint8_t i;
+   uint8_t i, j;
    
    // clear local variables
    memset(&blacklist_vars,0,sizeof(blacklist_vars_t));
@@ -27,10 +27,10 @@ void blacklist_init() {
    {
       blacklist_vars.neighbors[i].usedBlacklists[0].channelMap  = DEFAULT_BLACKLIST;
       blacklist_vars.neighbors[i].usedBlacklists[1].channelMap  = DEFAULT_BLACKLIST;       
-      blacklist_vars.neighbors[i].currentBlacklist              = DEFAULT_BLACKLIST; 
+      blacklist_vars.neighbors[i].currentBlacklist              = DEFAULT_BLACKLIST;
    }
    
-#ifdef BLACKLIST_TIMEOUT_BASED
+#ifdef BLACKLIST_TIMEOUT
    // start periodic timer
    blacklist_vars.timerId = opentimers_start(
                                 BLACKLIST_PERIOD_MS,
@@ -39,18 +39,36 @@ void blacklist_init() {
                           );
 #endif
 
-#ifdef BLACKLIST_MAB_BASED   
+#ifdef BLACKLIST_MAB
+   // set the chosen policy
+   blacklist_vars.mab_policy = MAB_POLICY;
+   
    // set the default blacklist metric to 100
    for (i = 0; i < MAXNUMNEIGHBORS; i++)
    {
       memset(&blacklist_vars.neighbors[i].blacklistMetric, 100, 16);
+      
+      if (blacklist_vars.mab_policy == BEST_ARM) {
+         for (j = 0; j < 16; j++){
+            blacklist_vars.neighbors[i].usedBlacklists[0].channelRank[j]  = j;
+            blacklist_vars.neighbors[i].usedBlacklists[1].channelRank[j]  = j;
+         }
+      }
    }   
-#endif
    
+   // start periodic timer
+   blacklist_vars.timerId = opentimers_start(
+                                BLACKLIST_MAB_PERIOD_MS,
+                                TIMER_PERIODIC,TIME_MS,
+                                blacklist_timer_cb
+                          );
+   
+   blacklist_vars.epsilon = EXPLORE_MODULUS;
+#endif
 }
 
 void    blacklist_reset(uint8_t neighborRow) {
-   uint8_t i;
+   uint8_t i, j;
    
    // clean the neighbor info
    memset(&blacklist_vars.neighbors[neighborRow], 0, sizeof(blacklistNeighborRow_t));
@@ -59,11 +77,18 @@ void    blacklist_reset(uint8_t neighborRow) {
    blacklist_vars.neighbors[neighborRow].usedBlacklists[0].channelMap  = DEFAULT_BLACKLIST;
    blacklist_vars.neighbors[neighborRow].usedBlacklists[1].channelMap  = DEFAULT_BLACKLIST;       
    blacklist_vars.neighbors[neighborRow].currentBlacklist              = DEFAULT_BLACKLIST;
-      
-#ifdef BLACKLIST_MAB_BASED   
+  
+#ifdef BLACKLIST_MAB
    // set the default blacklist metric to 100
    for (i = 0; i < MAXNUMNEIGHBORS; i++) {
       memset(&blacklist_vars.neighbors[i].blacklistMetric, 100, 16);
+      
+      if (blacklist_vars.mab_policy == BEST_ARM) {
+         for (j = 0; j < 16; j++){
+            blacklist_vars.neighbors[i].usedBlacklists[0].channelRank[j]  = j;
+            blacklist_vars.neighbors[i].usedBlacklists[1].channelRank[j]  = j;
+         }
+      }
    }   
 #endif  
 }
@@ -126,7 +151,7 @@ void    blacklist_updateBlacklistTxData(uint16_t address, uint8_t dsn) {
 
 */
 void blacklist_updateBlacklistRxData(uint16_t address, uint8_t dsn, uint8_t channel) {
-   uint8_t i;
+   uint8_t i, j;
    
    // get the neighbors row
    int8_t row = neighbors_getRow(address);
@@ -143,20 +168,46 @@ void blacklist_updateBlacklistRxData(uint16_t address, uint8_t dsn, uint8_t chan
    if (blacklist_vars.neighbors[row].usedBlacklists[0].dsn == dsn) {
       // first entry has DSN  
       blacklist_vars.neighbors[row].usedBlacklists[0].channelMap = blacklist_vars.neighbors[row].currentBlacklist;
+      
+#ifdef BLACKLIST_MAB
+      if (blacklist_vars.mab_policy == BEST_ARM) {
+         for (i = 0; i < 16; i++) {
+              blacklist_vars.neighbors[row].usedBlacklists[0].channelRank[i] = blacklist_vars.neighbors[row].currentRank[i];
+         }
+      }
+#endif      
+      
    }
    else if (blacklist_vars.neighbors[row].usedBlacklists[1].dsn == dsn) {
       // second entry has DSN
       blacklist_vars.neighbors[row].usedBlacklists[1].channelMap = blacklist_vars.neighbors[row].currentBlacklist;
+      
+#ifdef BLACKLIST_MAB
+      if (blacklist_vars.mab_policy == BEST_ARM) {
+         for (i = 0; i < 16; i++) {
+              blacklist_vars.neighbors[row].usedBlacklists[1].channelRank[i] = blacklist_vars.neighbors[row].currentRank[i];
+         }
+      }
+#endif            
+      
    }
    else {
       // we do not have an entry with DSN. lets find the oldest entry
-      if (blacklist_vars.neighbors[row].oldestBlacklistIdx == 0) i = 0;
-      else i = 1;
+      if (blacklist_vars.neighbors[row].oldestBlacklistIdx == 0) j = 0;
+      else j = 1;
         
-      blacklist_vars.neighbors[row].usedBlacklists[i].dsn = dsn;
-      blacklist_vars.neighbors[row].usedBlacklists[i].channelMap = blacklist_vars.neighbors[row].currentBlacklist;
+      blacklist_vars.neighbors[row].usedBlacklists[j].dsn = dsn;
+      blacklist_vars.neighbors[row].usedBlacklists[j].channelMap = blacklist_vars.neighbors[row].currentBlacklist;
+      
+#ifdef BLACKLIST_MAB
+      if (blacklist_vars.mab_policy == BEST_ARM) {
+         for (i = 0; i < 16; i++) {
+              blacklist_vars.neighbors[row].usedBlacklists[j].channelRank[i] = blacklist_vars.neighbors[row].currentRank[i];
+         }
+      }
+#endif            
         
-      if (i == 0) {
+      if (j == 0) {
          blacklist_vars.neighbors[row].oldestBlacklistIdx = 1;
       }
       else {
@@ -175,8 +226,9 @@ void blacklist_updateBlacklistRxData(uint16_t address, uint8_t dsn, uint8_t chan
 \param[in] blacklist Received blacklist
 
 */ 
-void    blacklist_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t blacklist) {
+void    blacklist_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t blacklist, uint8_t *channelRank) {
    bool newBlacklist = FALSE;
+   uint8_t i;
    
    // get the neighbors row
    int8_t row = neighbors_getRow(address);
@@ -196,12 +248,28 @@ void    blacklist_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t b
          blacklist_vars.neighbors[row].usedBlacklists[0].channelMap = blacklist;
          newBlacklist = TRUE;
       }
+      
+#ifdef BLACKLIST_MAB
+      if (blacklist_vars.mab_policy == BEST_ARM) {
+         for (i = 0; i < 16; i++, channelRank++) {
+              blacklist_vars.neighbors[row].usedBlacklists[0].channelRank[i] = *channelRank;
+         }
+      }
+#endif
    }
    else if (blacklist_vars.neighbors[row].usedBlacklists[1].dsn == dsn) {
       if (blacklist_vars.neighbors[row].usedBlacklists[1].channelMap != blacklist) {  
          blacklist_vars.neighbors[row].usedBlacklists[1].channelMap = blacklist;
          newBlacklist = TRUE;
       }
+      
+#ifdef BLACKLIST_MAB
+      if (blacklist_vars.mab_policy == BEST_ARM) {
+         for (i = 0; i < 16; i++, channelRank++) {
+              blacklist_vars.neighbors[row].usedBlacklists[1].channelRank[i] = *channelRank;
+         }
+      }
+#endif
    }
    else {
       openserial_printError(COMPONENT_BLACKLIST,ERR_WRONG_DSN,
@@ -260,6 +328,32 @@ uint16_t        blacklist_getUsedBlacklist(uint16_t address, bool oldest) {
    return blacklist_vars.neighbors[row].usedBlacklists[i].channelMap;
 }
 
+uint8_t*        blacklist_getUsedRank(uint16_t address, bool oldest) {
+   uint8_t i;   // the blacklist index
+   
+   // get the neighbors row
+   int8_t row = neighbors_getRow(address);
+   
+   if (row == -1) {
+      return 0;
+   }
+
+   if (oldest == TRUE) {
+      i = blacklist_vars.neighbors[row].oldestBlacklistIdx;
+   }
+   else
+   {
+      if (blacklist_vars.neighbors[row].oldestBlacklistIdx == 1) {
+         i = 0;  
+      }
+      else {
+         i = 1;
+      }
+   }
+   
+   return blacklist_vars.neighbors[row].usedBlacklists[i].channelRank;
+}
+
 /**
 \brief Get the current local blacklist for a particular neighbor
 
@@ -281,6 +375,20 @@ uint16_t        blacklist_getCurrentBlacklist(uint16_t address) {
    return blacklist_vars.neighbors[row].currentBlacklist;  
 }
 
+uint8_t*        blacklist_getCurrentRank(uint16_t address) {
+   
+   // get the neighbors row
+   int8_t row = neighbors_getRow(address);
+   
+   if (row == -1) {
+      openserial_printError(COMPONENT_BLACKLIST, ERR_INVALID_NEIGHBOR,
+                            (errorparameter_t)address, (errorparameter_t)3);
+      return 0;
+   }
+   
+   return blacklist_vars.neighbors[row].currentRank;  
+}
+
 /**
 \brief Update the current local blacklist for a particular neighbor depending on a packet event. 
 
@@ -291,7 +399,7 @@ uint16_t        blacklist_getCurrentBlacklist(uint16_t address) {
 
 */ 
 void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy) {
-   uint8_t i,j;
+   uint8_t i, j;
    
    // get the neighbors row
    int8_t row = neighbors_getRow(address);
@@ -314,14 +422,14 @@ void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint
    return;
 #endif
 
-#ifdef BLACKLIST_TIMEOUT_BASED
+#ifdef BLACKLIST_TIMEOUT
    if (error == E_SUCCESS) {
       // if our blacklist mechanism is based on timeout, let clean the blacklist of this node
       blacklist_vars.neighbors[row].blacklistMetric[channel] = 0;
    }
 #endif
 
-#ifdef BLACKLIST_MAB_BASED
+#ifdef BLACKLIST_MAB
    // update the channel metric (reward) with weight ALPHA_WEIGHT to the new reward ...
    uint8_t new_reward;
    
@@ -388,11 +496,9 @@ void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint
    blacklist_vars.neighbors[row].currentBlacklist = 0xffff;
    
    // decide if we are going to 'exploit' or 'explore' the channels
-   if (openrandom_get16b()%EXPLORE_MODULUS == 0) {
-      // lets explore the bad channels. we clean the channel that our arm will evaluate, the N_ARMS worst channels
-     for (i=0; i<N_ARMS; i++) {
-       blacklist_vars.neighbors[row].currentBlacklist &= ~(1 << sorted_channels[i]);
-     }
+   if (openrandom_get16b()%blacklist_vars.epsilon == 0) {
+      // lets explore all channels
+     blacklist_vars.neighbors[row].currentBlacklist = 0;
      
      openserial_printError(COMPONENT_BLACKLIST, ERR_EXPLORE_BLACKLIST,
                           (errorparameter_t)blacklist_vars.neighbors[row].currentBlacklist, (errorparameter_t)row);     
@@ -450,11 +556,17 @@ void blacklist_timer_cb(opentimer_id_t id){
 
 void blacklist_task_cb() {
    
-#ifdef BLACKLIST_TIMEOUT_BASED  
+#ifdef BLACKLIST_TIMEOUT
    if(neighbors_isRowUsed(blacklist_vars.curNeighbor)) {
       blacklist_checkBlacklistPeriodic(blacklist_vars.curNeighbor, BLACK_THRESHOLD, WHITE_THRESHOLD);
    }
    blacklist_vars.curNeighbor = (blacklist_vars.curNeighbor + 1)%MAXNUMNEIGHBORS;
 #endif
 
+#ifdef BLACKLIST_MAB
+   if (++blacklist_vars.epsilon == EXPLORE_MODULUS_MAX) {
+      blacklist_vars.epsilon = EXPLORE_MODULUS;
+   }
+#endif
+   
 }

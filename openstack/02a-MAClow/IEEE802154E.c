@@ -1211,7 +1211,7 @@ port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
       if (neighbors_isPreferredParent(ack_payload->l2_hdr.src)) {
         
          // update the entry with the received blacklist
-         blacklist_updateBlacklistRxAck(ack_payload->l2_hdr.src, ack_payload->l2_hdr.dsn, ack_payload->blacklist);
+         blacklist_updateBlacklistRxAck(ack_payload->l2_hdr.src, ack_payload->l2_hdr.dsn, ack_payload->blacklist, NULL);
       }
       
       // inform schedule of successful transmission
@@ -1482,6 +1482,7 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
 
 port_INLINE void activity_ri6() {
    ack_ht       *ack_payload;
+   uint8_t i;
    
    // change state
    changeState(S_TXACKPREPARE);
@@ -1523,6 +1524,10 @@ port_INLINE void activity_ri6() {
    
    // fill in the blacklist
    ack_payload->blacklist       = blacklist_getUsedBlacklist(ack_payload->l2_hdr.dst, FALSE);
+   
+   for (i = 0; i < 6; i++) {
+      ack_payload->channelrank[i] = i;
+   }
    
    // space for 2-byte CRC
    packetfunctions_reserveFooterSize(ieee154e_vars.ackToSend,2);

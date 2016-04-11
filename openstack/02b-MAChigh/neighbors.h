@@ -11,7 +11,7 @@
 
 //=========================== define ==========================================
 
-#define MAXNUMNEIGHBORS           20    // it needs to be at most 10 for telosb
+#define MAXNUMNEIGHBORS           20
 #define AVERAGEDEGREE             15
 #define MAXPREFERENCE             2
 #define BADNEIGHBORMAXRSSI        -70 // dBm
