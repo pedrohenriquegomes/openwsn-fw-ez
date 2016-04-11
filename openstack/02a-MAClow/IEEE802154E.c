@@ -1227,8 +1227,17 @@ port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
       // process the blacklist received inside the ACK if it came from a parent
       if (neighbors_isPreferredParent(ack_payload->l2_hdr.src)) {
         
-         // update the entry with the received blacklist
-         blacklist_updateBlacklistRxAck(ack_payload->l2_hdr.src, ack_payload->l2_hdr.dsn, ack_payload->blacklist, ack_payload->channelrank);
+         // update the entry with the received blacklist and rank
+         
+         // deflate rank information from ACK packet
+         uint8_t rank[16];
+         uint8_t i, j = 0;
+         for (i=0; i<16; i+=2) {
+            rank[i] = ack_payload->channelrank[j] & 0x0f;
+            rank[i+1] = ack_payload->channelrank[j++] >> 4;
+         }
+         //blacklist_updateBlacklistRxAck(ack_payload->l2_hdr.src, ack_payload->l2_hdr.dsn, ack_payload->blacklist, ack_payload->channelrank);
+         blacklist_updateBlacklistRxAck(ack_payload->l2_hdr.src, ack_payload->l2_hdr.dsn, ack_payload->blacklist, rank);
       }
       
       // inform schedule of successful transmission
@@ -1515,6 +1524,7 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
 
 port_INLINE void activity_ri6() {
    ack_ht       *ack_payload;
+   uint8_t i;
    
    // change state
    changeState(S_TXACKPREPARE);
@@ -1558,7 +1568,11 @@ port_INLINE void activity_ri6() {
    ack_payload->blacklist       = blacklist_getUsedBlacklist(ack_payload->l2_hdr.dst, FALSE);
    
    uint8_t* rank = blacklist_getUsedRank(ack_payload->l2_hdr.dst, FALSE);
-   memcpy(ack_payload->channelrank, rank, 16);
+   uint8_t j=0;
+   for (i=0; i<16; i+=2) {
+      ack_payload->channelrank[j++] = (rank[i] & 0x0f) | ((rank[i+1] & 0x0f) << 4);
+   }
+   //memcpy(ack_payload->channelrank, rank, 16);
    
    // space for 2-byte CRC
    packetfunctions_reserveFooterSize(ieee154e_vars.ackToSend,2);

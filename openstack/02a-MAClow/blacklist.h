@@ -33,10 +33,10 @@ enum {
 };
 
 #ifdef BLACKLIST_MAB
-   #define BLACKLIST_MAB_PERIOD_MS      1000
+   #define BLACKLIST_MAB_PERIOD_MS      10000
    #define ALPHA_WEIGHT                 20      // weight for the new reward (should vary from 0 to 100). This weight is used in the exponential moving average
    #define EXPLORE_MODULUS              10      // the N_ARMS worst channels will be explored every (1/EXPLORE_MODULUS) trials
-   #define EXPLORE_MODULUS_MAX          100
+   #define EXPLORE_MODULUS_MAX          200
    #define N_ARMS                       8      // the number of channels that will be considered, either for exploiting or for exploring
    #define N_MAX_MISSED                 15      // max number of packets missed in a row before detecting desync of blacklist
    #define MAB_POLICY                   BEST_ARM
