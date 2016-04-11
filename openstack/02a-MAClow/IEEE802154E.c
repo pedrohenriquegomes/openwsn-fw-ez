@@ -85,6 +85,7 @@ void     updateStats(PORT_SIGNED_INT_WIDTH timeCorrection);
 // misc
 uint8_t  calculateFrequency(uint8_t channelOffset);
 uint8_t  calculateFrequencyWithBlacklist(uint16_t channelMap, uint16_t blacklist);
+uint8_t  calculateFrequencyWithRank(uint16_t channelMap, uint8_t* rank);
 void     changeState(ieee154e_state_t newstate);
 bool     isPktBroadcast(OpenQueueEntry_t* pkt);
 void     endSlot(void);
@@ -901,10 +902,20 @@ port_INLINE void activity_ti2() {
    
    // check if we are going to use a blacklist
    uint16_t blacklist;
+
+#ifdef BLACKLIST_MAB
+   uint8_t *rank;
+#endif
    
    if (schedule_getType() == CELLTYPE_TX) {
       // if I am transmitting in a dedicated slot, get the blacklist
       blacklist = blacklist_getUsedBlacklist(schedule_getNeighbor(), TRUE);
+      
+#ifdef BLACKLIST_MAB
+      if (blacklist_getMABPolicy() == BEST_ARM) {
+         rank = blacklist_getUsedRank(schedule_getNeighbor(), TRUE);
+      }
+#endif      
    }
    else {
       // the slot is shared, do not use the blacklist
@@ -914,6 +925,10 @@ port_INLINE void activity_ti2() {
    // calculate the frequency to transmit on
    ieee154e_vars.freq = calculateFrequencyWithBlacklist(schedule_getChannelOffset(), blacklist);
 
+#ifdef BLACKLIST_MAB
+   ieee154e_vars.freq = calculateFrequencyWithRank(schedule_getChannelOffset(), rank);
+#endif
+   
    // configure the radio for that frequency
    radio_setFrequency(ieee154e_vars.freq);
    
@@ -1211,7 +1226,7 @@ port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
       if (neighbors_isPreferredParent(ack_payload->l2_hdr.src)) {
         
          // update the entry with the received blacklist
-         blacklist_updateBlacklistRxAck(ack_payload->l2_hdr.src, ack_payload->l2_hdr.dsn, ack_payload->blacklist, NULL);
+         blacklist_updateBlacklistRxAck(ack_payload->l2_hdr.src, ack_payload->l2_hdr.dsn, ack_payload->blacklist, ack_payload->channelrank);
       }
       
       // inform schedule of successful transmission
@@ -1243,9 +1258,19 @@ port_INLINE void activity_ri2() {
    // check if we are going to use a blacklist
    uint16_t blacklist;
    
+#ifdef BLACKLIST_MAB
+   uint8_t *rank;
+#endif
+   
    if (schedule_getType() == CELLTYPE_RX) {
       // if I am transmitting in a dedicated slot, get the blacklist
       blacklist = blacklist_getUsedBlacklist(schedule_getNeighbor(), TRUE);
+      
+#ifdef BLACKLIST_MAB
+      if (blacklist_getMABPolicy() == BEST_ARM) {
+         rank = blacklist_getUsedRank(schedule_getNeighbor(), TRUE);
+      }
+#endif        
    }
    else {
       // the slot is shared, do not use the blacklist
@@ -1254,6 +1279,10 @@ port_INLINE void activity_ri2() {
    
    // calculate the frequency to transmit on
    ieee154e_vars.freq = calculateFrequencyWithBlacklist(schedule_getChannelOffset(), blacklist);
+   
+#ifdef BLACKLIST_MAB
+   ieee154e_vars.freq = calculateFrequencyWithRank(schedule_getChannelOffset(), rank);
+#endif
    
    // configure the radio for that frequency
    radio_setFrequency(ieee154e_vars.freq);
@@ -1525,8 +1554,9 @@ port_INLINE void activity_ri6() {
    // fill in the blacklist
    ack_payload->blacklist       = blacklist_getUsedBlacklist(ack_payload->l2_hdr.dst, FALSE);
    
+   uint8_t* rank = blacklist_getUsedRank(ack_payload->l2_hdr.dst, FALSE);
    for (i = 0; i < 6; i++) {
-      ack_payload->channelrank[i] = i;
+      ack_payload->channelrank[i] = *rank++;
    }
    
    // space for 2-byte CRC
@@ -1914,6 +1944,35 @@ uint8_t calculateFrequencyWithBlacklist(uint16_t channelMap, uint16_t blacklist)
   
    // we return the first non-blacked channel or the last one (in case all channels were blacked)
    return realChannel + 11;
+}
+
+uint8_t  calculateFrequencyWithRank(uint16_t channelMap, uint8_t* rank) {
+   uint8_t i, realChannel, best_rank, best_channel;
+   
+   // if channelMap is 0, we have a non-unicast time slot (RX/TX or EB slots)
+   if (channelMap == 0) {
+     return calculateFrequency(channelMap);
+   }
+   
+   // by default the best channel is 0 and the best rank is 0
+   best_rank = best_channel = 0;
+   for (i = 0; i < 16; i++)
+   {
+      // Check all possible channel offsets allowed by the channelMask
+      if (channelMap & (uint16_t)(1 << i))
+      {
+         realChannel = calculateFrequency(i) - 11;
+         
+         if (rank[realChannel] > best_rank)
+         {
+            best_rank = rank[realChannel];
+            best_channel = realChannel;
+         }
+      }
+   }
+  
+   // we return the first non-blacked channel or the last one (in case all channels were blacked)
+   return best_channel + 11;  
 }
 
 bool     isPktBroadcast(OpenQueueEntry_t* pkt) {

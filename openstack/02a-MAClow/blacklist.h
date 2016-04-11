@@ -39,7 +39,7 @@ enum {
    #define EXPLORE_MODULUS_MAX          100
    #define N_ARMS                       8      // the number of channels that will be considered, either for exploiting or for exploring
    #define N_MAX_MISSED                 15      // max number of packets missed in a row before detecting desync of blacklist
-   #define MAB_POLICY                   FIRST_BEST_ARM
+   #define MAB_POLICY                   BEST_ARM
 #endif
 
 #define DEFAULT_BLACKLIST         0x0000
@@ -94,6 +94,7 @@ void 	        blacklist_updateBlacklistRxData(uint16_t address, uint8_t dsn, uin
 uint16_t        blacklist_getUsedBlacklist(uint16_t address, bool oldest);
 uint8_t*        blacklist_getUsedRank(uint16_t address, bool oldest);
 uint16_t        blacklist_getCurrentBlacklist(uint16_t address);
+uint8_t         blacklist_getMABPolicy(void);
 void            blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy);
 void            blacklist_checkBlacklistPeriodic(uint8_t neighborRow, uint8_t blackThreshold, uint8_t whiteThreshold);
 

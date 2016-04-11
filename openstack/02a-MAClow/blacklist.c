@@ -265,8 +265,8 @@ void    blacklist_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t b
       
 #ifdef BLACKLIST_MAB
       if (blacklist_vars.mab_policy == BEST_ARM) {
-         for (i = 0; i < 16; i++, channelRank++) {
-              blacklist_vars.neighbors[row].usedBlacklists[1].channelRank[i] = *channelRank;
+         for (i = 0; i < 16; i++) {
+              blacklist_vars.neighbors[row].usedBlacklists[1].channelRank[i] = *channelRank++;
          }
       }
 #endif
@@ -389,6 +389,14 @@ uint8_t*        blacklist_getCurrentRank(uint16_t address) {
    return blacklist_vars.neighbors[row].currentRank;  
 }
 
+port_INLINE     uint8_t blacklist_getMABPolicy(void) {
+#ifdef BLACKLIST_MAB  
+   return blacklist_vars.mab_policy;
+#else
+   return 0;
+#endif
+}
+
 /**
 \brief Update the current local blacklist for a particular neighbor depending on a packet event. 
 
@@ -500,6 +508,12 @@ void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint
       // lets explore all channels
      blacklist_vars.neighbors[row].currentBlacklist = 0;
      
+     if (blacklist_vars.mab_policy == BEST_ARM) {
+        for (j = 0; j < 16; j++) {
+           blacklist_vars.neighbors[row].currentRank[j] = j;     
+        }
+     }
+     
      openserial_printError(COMPONENT_BLACKLIST, ERR_EXPLORE_BLACKLIST,
                           (errorparameter_t)blacklist_vars.neighbors[row].currentBlacklist, (errorparameter_t)row);     
    }
@@ -507,6 +521,12 @@ void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint
       // lets exploit the good channels. we clean the channel that our arm will evaluate, the N_ARMS best channels
      for (i=(16-N_ARMS); i<16; i++) {
        blacklist_vars.neighbors[row].currentBlacklist &= ~(1 << sorted_channels[i]);
+     }
+     
+     if (blacklist_vars.mab_policy == BEST_ARM) {
+        for (i = 0; i < 16; i++) {
+           blacklist_vars.neighbors[row].currentRank[sorted_channels[i]] = i;     
+        }     
      }
    }
 #endif  
