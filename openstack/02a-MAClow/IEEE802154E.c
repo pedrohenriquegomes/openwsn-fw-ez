@@ -926,7 +926,9 @@ port_INLINE void activity_ti2() {
    ieee154e_vars.freq = calculateFrequencyWithBlacklist(schedule_getChannelOffset(), blacklist);
 
 #ifdef BLACKLIST_MAB
-   ieee154e_vars.freq = calculateFrequencyWithRank(schedule_getChannelOffset(), rank);
+   if (blacklist_getMABPolicy() == BEST_ARM) {
+      ieee154e_vars.freq = calculateFrequencyWithRank(schedule_getChannelOffset(), rank);
+   }
 #endif
    
    // configure the radio for that frequency
@@ -1281,7 +1283,9 @@ port_INLINE void activity_ri2() {
    ieee154e_vars.freq = calculateFrequencyWithBlacklist(schedule_getChannelOffset(), blacklist);
    
 #ifdef BLACKLIST_MAB
-   ieee154e_vars.freq = calculateFrequencyWithRank(schedule_getChannelOffset(), rank);
+   if (blacklist_getMABPolicy() == BEST_ARM) {
+      ieee154e_vars.freq = calculateFrequencyWithRank(schedule_getChannelOffset(), rank);
+   }
 #endif
    
    // configure the radio for that frequency
@@ -1511,7 +1515,6 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
 
 port_INLINE void activity_ri6() {
    ack_ht       *ack_payload;
-   uint8_t i;
    
    // change state
    changeState(S_TXACKPREPARE);
@@ -1555,9 +1558,7 @@ port_INLINE void activity_ri6() {
    ack_payload->blacklist       = blacklist_getUsedBlacklist(ack_payload->l2_hdr.dst, FALSE);
    
    uint8_t* rank = blacklist_getUsedRank(ack_payload->l2_hdr.dst, FALSE);
-   for (i = 0; i < 6; i++) {
-      ack_payload->channelrank[i] = *rank++;
-   }
+   memcpy(ack_payload->channelrank, rank, 16);
    
    // space for 2-byte CRC
    packetfunctions_reserveFooterSize(ieee154e_vars.ackToSend,2);

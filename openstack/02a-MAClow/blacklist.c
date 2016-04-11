@@ -52,6 +52,7 @@ void blacklist_init() {
          for (j = 0; j < 16; j++){
             blacklist_vars.neighbors[i].usedBlacklists[0].channelRank[j]  = j;
             blacklist_vars.neighbors[i].usedBlacklists[1].channelRank[j]  = j;
+            blacklist_vars.neighbors[i].currentRank[j]  = j;
          }
       }
    }   
@@ -64,6 +65,10 @@ void blacklist_init() {
                           );
    
    blacklist_vars.epsilon = EXPLORE_MODULUS;
+   
+   for (i = 0; i < 16; i++) {
+      blacklist_vars.random_channel_rank[i] = 15 - i;
+   }
 #endif
 }
 
@@ -87,6 +92,7 @@ void    blacklist_reset(uint8_t neighborRow) {
          for (j = 0; j < 16; j++){
             blacklist_vars.neighbors[i].usedBlacklists[0].channelRank[j]  = j;
             blacklist_vars.neighbors[i].usedBlacklists[1].channelRank[j]  = j;
+            blacklist_vars.neighbors[i].currentRank[j]  = j;
          }
       }
    }   
@@ -99,6 +105,12 @@ void    blacklist_resetAll(void) {
    for (i = 0; i < MAXNUMNEIGHBORS; i++) {
       blacklist_reset(i);
    }
+
+#ifdef BLACKLIST_MAB   
+   for (i = 0; i < 16; i++) {
+      blacklist_vars.random_channel_rank[i] = 15 - i;
+   }
+#endif   
 }
 
 /**
@@ -228,7 +240,6 @@ void blacklist_updateBlacklistRxData(uint16_t address, uint8_t dsn, uint8_t chan
 */ 
 void    blacklist_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t blacklist, uint8_t *channelRank) {
    bool newBlacklist = FALSE;
-   uint8_t i;
    
    // get the neighbors row
    int8_t row = neighbors_getRow(address);
@@ -251,9 +262,7 @@ void    blacklist_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t b
       
 #ifdef BLACKLIST_MAB
       if (blacklist_vars.mab_policy == BEST_ARM) {
-         for (i = 0; i < 16; i++, channelRank++) {
-              blacklist_vars.neighbors[row].usedBlacklists[0].channelRank[i] = *channelRank;
-         }
+         memcpy(blacklist_vars.neighbors[row].usedBlacklists[0].channelRank, channelRank, 16);
       }
 #endif
    }
@@ -265,9 +274,7 @@ void    blacklist_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t b
       
 #ifdef BLACKLIST_MAB
       if (blacklist_vars.mab_policy == BEST_ARM) {
-         for (i = 0; i < 16; i++) {
-              blacklist_vars.neighbors[row].usedBlacklists[1].channelRank[i] = *channelRank++;
-         }
+         memcpy(blacklist_vars.neighbors[row].usedBlacklists[1].channelRank, channelRank, 16);
       }
 #endif
    }
@@ -504,14 +511,21 @@ void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint
    blacklist_vars.neighbors[row].currentBlacklist = 0xffff;
    
    // decide if we are going to 'exploit' or 'explore' the channels
-   if (openrandom_get16b()%blacklist_vars.epsilon == 0) {
+   if ((openrandom_get16b() % blacklist_vars.epsilon) == 0) {
       // lets explore all channels
      blacklist_vars.neighbors[row].currentBlacklist = 0;
-     
+  
+     // we create a random rank list so that other channels can be explored
      if (blacklist_vars.mab_policy == BEST_ARM) {
-        for (j = 0; j < 16; j++) {
-           blacklist_vars.neighbors[row].currentRank[j] = j;     
-        }
+        // we swap a pre-defined sequence with random channels
+        uint8_t idx_to_swap1 = openrandom_get16b() % 16;
+        uint8_t idx_to_swap2 = openrandom_get16b() % 16;
+
+        uint8_t temp_rank = blacklist_vars.random_channel_rank[idx_to_swap1];
+        blacklist_vars.random_channel_rank[idx_to_swap1] = blacklist_vars.random_channel_rank[idx_to_swap2];
+        blacklist_vars.random_channel_rank[idx_to_swap2] = temp_rank;
+        
+        memcpy(blacklist_vars.neighbors[row].currentRank, blacklist_vars.random_channel_rank, 16);
      }
      
      openserial_printError(COMPONENT_BLACKLIST, ERR_EXPLORE_BLACKLIST,
@@ -525,7 +539,7 @@ void    blacklist_updateCurrentBlacklist(uint16_t address, owerror_t error, uint
      
      if (blacklist_vars.mab_policy == BEST_ARM) {
         for (i = 0; i < 16; i++) {
-           blacklist_vars.neighbors[row].currentRank[sorted_channels[i]] = i;     
+           blacklist_vars.neighbors[row].currentRank[sorted_channels[i]] = 15-i;     
         }     
      }
    }

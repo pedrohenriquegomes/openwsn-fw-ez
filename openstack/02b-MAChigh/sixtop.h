@@ -70,7 +70,7 @@ BEGIN_PACK
 typedef struct {                                 // always written big endian, i.e. MSB in addr[0]
    l2_ht     l2_hdr;
    uint16_t  blacklist;
-   uint8_t   channelrank[8];
+   uint8_t   channelrank[16];
 } ack_ht;
 END_PACK
 

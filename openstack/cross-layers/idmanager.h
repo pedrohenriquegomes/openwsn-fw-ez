@@ -13,8 +13,8 @@
 //=========================== define ==========================================
 
 #define BROADCAST_ID              0xffff
-//#define SINK_ID                   0xed4f      //openmotes@home
-#define SINK_ID                   0x6e29        //telosb@home
+#define SINK_ID                   0xed4f      //openmotes@home
+//#define SINK_ID                   0x6e29        //telosb@home
 //#define SINK_ID                   0x6ce6        //telosb@tutornet
 
 //=========================== typedef =========================================

@@ -79,6 +79,7 @@ typedef struct {
 #ifdef BLACKLIST_MAB   
    uint8_t                      mab_policy;
    uint8_t                      epsilon;
+   uint8_t                      random_channel_rank[16];
 #endif     
    blacklistNeighborRow_t       neighbors[MAXNUMNEIGHBORS];     // blacklist information for each neighbor
 } blacklist_vars_t;
