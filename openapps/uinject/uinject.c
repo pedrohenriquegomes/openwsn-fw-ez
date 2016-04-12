@@ -123,13 +123,11 @@ void uinject_task_cb() {
    // don't run if not synch
    if (ieee154e_isSynch() == FALSE) return;
    
-#ifdef UINJECT_SEND_PERIODIC
    // don't run on dagroot
    if (idmanager_getIsDAGroot()) {
       opentimers_stop(uinject_vars.timerId);
       return;
    }
-#endif
    
    // if you get here, send a packet
    
@@ -137,7 +135,7 @@ void uinject_task_cb() {
    pkt = openqueue_getFreePacketBuffer(COMPONENT_UINJECT);
    if (pkt==NULL) {
       openserial_printError(COMPONENT_UINJECT, ERR_NO_FREE_PACKET_BUFFER, 
-                            (errorparameter_t)0, (errorparameter_t)0);
+                            (errorparameter_t)1, (errorparameter_t)0);
       return;
    }
    

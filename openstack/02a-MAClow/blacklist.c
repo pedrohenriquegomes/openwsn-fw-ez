@@ -33,7 +33,7 @@ void blacklist_init() {
 #ifdef BLACKLIST_TIMEOUT
    // start periodic timer
    blacklist_vars.timerId = opentimers_start(
-                                BLACKLIST_PERIOD_MS,
+                                BLACKLIST_TIMEOUT_PERIOD_MS,
                                 TIMER_PERIODIC,TIME_MS,
                                 blacklist_timer_cb
                           );
