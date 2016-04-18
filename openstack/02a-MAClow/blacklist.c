@@ -29,6 +29,9 @@ void blacklist_init() {
       blacklist_vars.neighbors[i].usedBlacklists[1].channelMap  = DEFAULT_BLACKLIST;       
       blacklist_vars.neighbors[i].currentBlacklist              = DEFAULT_BLACKLIST;
    }
+
+   // setting the blacklist type
+   blacklist_vars.blacklist_type = BLACKLIST_TYPE;
    
 #ifdef BLACKLIST_TIMEOUT
    // start periodic timer

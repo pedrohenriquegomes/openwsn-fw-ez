@@ -16,6 +16,12 @@
 
 //=========================== define ==========================================
 
+// Blacklist types
+//#define BLACKLIST_DISABLED              0 // if blacklist is disabled
+//#define BLACKLIST_TIMEOUT               1 // if blacklist is based on timeouts 
+#define BLACKLIST_MAB_FIRST_BEST_ARM    2 // if blacklist is based on Multi-armed with first best arm pulled
+#define BLACKLIST_MAB_BEST_ARM          3 // if blacklist is based on Multi-armed with best arm pulled
+
 // **** Set the BLACKLIST type here
 //#define BLACKLIST_DISABLED
 //#define BLACKLIST_TIMEOUT       // if blacklist mechanism is based on timeouts 
@@ -42,7 +48,10 @@ enum {
    #define MAB_POLICY                   BEST_ARM
 #endif
 
+// For general blacklist
 #define DEFAULT_BLACKLIST         0x0000
+
+#define BLACKLIST_TYPE                  BLACKLIST_MAB_BEST_ARM
 
 //=========================== typedef =========================================
 
@@ -73,6 +82,7 @@ END_PACK
 //=========================== variables =======================================
 
 typedef struct {
+   uint8_t                      blacklist_type; 
    opentimer_id_t               timerId;                        // periodic timer which checks the channels
    uint8_t                      curNeighbor;
    uint8_t                      counter;                        // counts the number of times the timer fired
@@ -96,6 +106,7 @@ uint16_t        blacklist_getUsedBlacklist(uint16_t address, bool oldest);
 uint8_t*        blacklist_getUsedRank(uint16_t address, bool oldest);
 uint16_t        blacklist_getCurrentBlacklist(uint16_t address);
 uint8_t         blacklist_getMABPolicy(void);
+uint8_t         blacklist_getBlacklistType(void);
 void            blacklist_updateCurrentBlacklistRx(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy);
 void            blacklist_updateCurrentBlacklistTx(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy);
 void            blacklist_checkBlacklistPeriodic(uint8_t neighborRow, uint8_t blackThreshold, uint8_t whiteThreshold);
