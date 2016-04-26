@@ -901,20 +901,14 @@ port_INLINE void activity_ti2() {
    
    // check if we are going to use a blacklist
    uint16_t blacklist;
-
-#ifdef BLACKLIST_MAB
    uint8_t *rank;
-#endif
-   
    if (schedule_getType() == CELLTYPE_TX) {
       // if I am transmitting in a dedicated slot, get the blacklist
       blacklist = blacklist_getUsedBlacklist(schedule_getNeighbor(), TRUE);
       
-#ifdef BLACKLIST_MAB
-      if (blacklist_getMABPolicy() == BEST_ARM) {
+      if (blacklist_getBlacklistType() == BLACKLIST_MAB_BEST_ARM) {
          rank = blacklist_getUsedRank(schedule_getNeighbor(), TRUE);
-      }
-#endif      
+      }   
    }
    else {
       // the slot is shared, do not use the blacklist
@@ -924,11 +918,9 @@ port_INLINE void activity_ti2() {
    // calculate the frequency to transmit on
    ieee154e_vars.freq = calculateFrequencyWithBlacklist(schedule_getChannelOffset(), blacklist);
 
-#ifdef BLACKLIST_MAB
-   if (blacklist_getMABPolicy() == BEST_ARM) {
+   if (blacklist_getBlacklistType() == BLACKLIST_MAB_BEST_ARM) {
       ieee154e_vars.freq = calculateFrequencyWithRank(schedule_getChannelOffset(), rank);
    }
-#endif
    
    // configure the radio for that frequency
    radio_setFrequency(ieee154e_vars.freq);
@@ -1275,20 +1267,14 @@ port_INLINE void activity_ri2() {
 
    // check if we are going to use a blacklist
    uint16_t blacklist;
-   
-#ifdef BLACKLIST_MAB
    uint8_t *rank;
-#endif
-   
    if (schedule_getType() == CELLTYPE_RX) {
       // if I am transmitting in a dedicated slot, get the blacklist
       blacklist = blacklist_getUsedBlacklist(schedule_getNeighbor(), TRUE);
       
-#ifdef BLACKLIST_MAB
-      if (blacklist_getMABPolicy() == BEST_ARM) {
+      if (blacklist_getBlacklistType() == BLACKLIST_MAB_BEST_ARM) {
          rank = blacklist_getUsedRank(schedule_getNeighbor(), TRUE);
       }
-#endif        
    }
    else {
       // the slot is shared, do not use the blacklist
@@ -1298,11 +1284,9 @@ port_INLINE void activity_ri2() {
    // calculate the frequency to transmit on
    ieee154e_vars.freq = calculateFrequencyWithBlacklist(schedule_getChannelOffset(), blacklist);
    
-#ifdef BLACKLIST_MAB
-   if (blacklist_getMABPolicy() == BEST_ARM) {
+   if (blacklist_getBlacklistType() == BLACKLIST_MAB_BEST_ARM) {
       ieee154e_vars.freq = calculateFrequencyWithRank(schedule_getChannelOffset(), rank);
    }
-#endif
    
    // configure the radio for that frequency
    radio_setFrequency(ieee154e_vars.freq);

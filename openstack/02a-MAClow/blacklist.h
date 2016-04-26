@@ -18,7 +18,7 @@
 
 // Blacklist types
 //#define BLACKLIST_DISABLED              0 // if blacklist is disabled
-//#define BLACKLIST_TIMEOUT               1 // if blacklist is based on timeouts 
+#define BLACKLIST_TIMEOUT               1 // if blacklist is based on timeouts 
 #define BLACKLIST_MAB_FIRST_BEST_ARM    2 // if blacklist is based on Multi-armed with first best arm pulled
 #define BLACKLIST_MAB_BEST_ARM          3 // if blacklist is based on Multi-armed with best arm pulled
 
@@ -27,31 +27,27 @@
 //#define BLACKLIST_TIMEOUT       // if blacklist mechanism is based on timeouts 
 #define BLACKLIST_MAB         // if blacklist mechanism is based on Multi-armed
 
-#ifdef BLACKLIST_TIMEOUT
-   #define BLACKLIST_TIMEOUT_PERIOD_MS     (1000/MAXNUMNEIGHBORS)    // we check each neighbor every 1 second
-   #define BLACK_THRESHOLD                 60    // when the counter reaches this values the channel is considered bad
-   #define WHITE_THRESHOLD                 240    // when the channel should be reset to the good state              
-#endif
+#define BLACKLIST_TIMEOUT_PERIOD_MS     (1000/MAXNUMNEIGHBORS)    // we check each neighbor every 1 second
+#define BLACK_THRESHOLD                 60    // when the counter reaches this values the channel is considered bad
+#define WHITE_THRESHOLD                 240    // when the channel should be reset to the good state              
 
 enum {
    FIRST_BEST_ARM              = 0,
    BEST_ARM                    = 1,
 };
 
-#ifdef BLACKLIST_MAB
-   #define BLACKLIST_MAB_PERIOD_MS      10000
-   #define ALPHA_WEIGHT                 20      // weight for the new reward (should vary from 0 to 100). This weight is used in the exponential moving average
-   #define EXPLORE_MODULUS              10      // the N_ARMS worst channels will be explored every (1/EXPLORE_MODULUS) trials
-   #define EXPLORE_MODULUS_MAX          200
-   #define N_ARMS                       8      // the number of channels that will be considered, either for exploiting or for exploring
-   #define N_MAX_MISSED                 15      // max number of packets missed in a row before detecting desync of blacklist
-   #define MAB_POLICY                   BEST_ARM
-#endif
+#define BLACKLIST_MAB_PERIOD_MS      10000
+#define ALPHA_WEIGHT                 20      // weight for the new reward (should vary from 0 to 100). This weight is used in the exponential moving average
+#define EXPLORE_MODULUS              10      // the N_ARMS worst channels will be explored every (1/EXPLORE_MODULUS) trials
+#define EXPLORE_MODULUS_MAX          200
+#define N_ARMS                       8      // the number of channels that will be considered, either for exploiting or for exploring
+#define N_MAX_MISSED                 15      // max number of packets missed in a row before detecting desync of blacklist
+#define MAB_POLICY                   BEST_ARM
 
 // For general blacklist
-#define DEFAULT_BLACKLIST         0x0000
+#define DEFAULT_BLACKLIST               0x0000
 
-#define BLACKLIST_TYPE                  BLACKLIST_MAB_BEST_ARM
+#define BLACKLIST_TYPE                  BLACKLIST_TIMEOUT
 
 //=========================== typedef =========================================
 

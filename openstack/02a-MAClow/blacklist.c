@@ -33,46 +33,49 @@ void blacklist_init() {
    // setting the blacklist type
    blacklist_vars.blacklist_type = BLACKLIST_TYPE;
    
-#ifdef BLACKLIST_TIMEOUT
-   // start periodic timer
-   blacklist_vars.timerId = opentimers_start(
+   if (blacklist_vars.blacklist_type == BLACKLIST_TIMEOUT)
+   {
+      // start periodic timer
+      blacklist_vars.timerId = opentimers_start(
                                 BLACKLIST_TIMEOUT_PERIOD_MS,
                                 TIMER_PERIODIC,TIME_MS,
                                 blacklist_timer_cb
                           );
-#endif
+   }
 
-#ifdef BLACKLIST_MAB
-   // set the chosen policy
-   blacklist_vars.mab_policy = MAB_POLICY;
-   
-   // set the default blacklist metric to 100
-   for (i = 0; i < MAXNUMNEIGHBORS; i++)
+   if (blacklist_vars.blacklist_type == BLACKLIST_MAB_FIRST_BEST_ARM || 
+       blacklist_vars.blacklist_type == BLACKLIST_MAB_BEST_ARM)
    {
-      memset(&blacklist_vars.neighbors[i].blacklistMetric, 100, 16);
+      // set the chosen policy **** poipoi
+      blacklist_vars.mab_policy = MAB_POLICY;
       
-      if (blacklist_vars.mab_policy == BEST_ARM) {
-         for (j = 0; j < 16; j++){
-            blacklist_vars.neighbors[i].usedBlacklists[0].channelRank[j]  = j;
-            blacklist_vars.neighbors[i].usedBlacklists[1].channelRank[j]  = j;
-            blacklist_vars.neighbors[i].currentRank[j]  = j;
+      // set the default blacklist metric to 100
+      for (i = 0; i < MAXNUMNEIGHBORS; i++)
+      {
+         memset(&blacklist_vars.neighbors[i].blacklistMetric, 100, 16);
+      
+         if (blacklist_vars.blacklist_type == BLACKLIST_MAB_BEST_ARM) {
+            for (j = 0; j < 16; j++){
+               blacklist_vars.neighbors[i].usedBlacklists[0].channelRank[j]  = j;
+               blacklist_vars.neighbors[i].usedBlacklists[1].channelRank[j]  = j;
+               blacklist_vars.neighbors[i].currentRank[j]  = j;
+            }
          }
-      }
-   }   
+      }   
    
-   // start periodic timer
-   blacklist_vars.timerId = opentimers_start(
+      // start periodic timer
+      blacklist_vars.timerId = opentimers_start(
                                 BLACKLIST_MAB_PERIOD_MS,
                                 TIMER_PERIODIC,TIME_MS,
                                 blacklist_timer_cb
                           );
    
-   blacklist_vars.epsilon = EXPLORE_MODULUS;
+      blacklist_vars.epsilon = EXPLORE_MODULUS;
    
-   for (i = 0; i < 16; i++) {
-      blacklist_vars.random_channel_rank[i] = 15 - i;
+      for (i = 0; i < 16; i++) {
+         blacklist_vars.random_channel_rank[i] = 15 - i;
+      }
    }
-#endif
 }
 
 void    blacklist_reset(uint8_t neighborRow) {
@@ -86,20 +89,22 @@ void    blacklist_reset(uint8_t neighborRow) {
    blacklist_vars.neighbors[neighborRow].usedBlacklists[1].channelMap  = DEFAULT_BLACKLIST;       
    blacklist_vars.neighbors[neighborRow].currentBlacklist              = DEFAULT_BLACKLIST;
   
-#ifdef BLACKLIST_MAB
-   // set the default blacklist metric to 100
-   for (i = 0; i < MAXNUMNEIGHBORS; i++) {
-      memset(&blacklist_vars.neighbors[i].blacklistMetric, 100, 16);
+   if (blacklist_vars.blacklist_type == BLACKLIST_MAB_FIRST_BEST_ARM || 
+       blacklist_vars.blacklist_type == BLACKLIST_MAB_BEST_ARM)
+   {
+      // set the default blacklist metric to 100
+      for (i = 0; i < MAXNUMNEIGHBORS; i++) {
+         memset(&blacklist_vars.neighbors[i].blacklistMetric, 100, 16);
       
-      if (blacklist_vars.mab_policy == BEST_ARM) {
-         for (j = 0; j < 16; j++){
-            blacklist_vars.neighbors[i].usedBlacklists[0].channelRank[j]  = j;
-            blacklist_vars.neighbors[i].usedBlacklists[1].channelRank[j]  = j;
-            blacklist_vars.neighbors[i].currentRank[j]  = j;
+         if (blacklist_vars.blacklist_type == BLACKLIST_MAB_BEST_ARM) {
+            for (j = 0; j < 16; j++){
+               blacklist_vars.neighbors[i].usedBlacklists[0].channelRank[j]  = j;
+               blacklist_vars.neighbors[i].usedBlacklists[1].channelRank[j]  = j;
+               blacklist_vars.neighbors[i].currentRank[j]  = j;
+            }
          }
       }
-   }   
-#endif  
+   } 
 }
 
 void    blacklist_resetAll(void) {
@@ -345,7 +350,7 @@ uint8_t*        blacklist_getUsedRank(uint16_t address, bool oldest) {
    int8_t row = neighbors_getRow(address);
    
    if (row == -1) {
-      return 0;
+      return NULL;
    }
 
    if (oldest == TRUE) {
@@ -405,6 +410,10 @@ port_INLINE     uint8_t blacklist_getMABPolicy(void) {
 #else
    return 0;
 #endif
+}
+
+port_INLINE     uint8_t blacklist_getBlacklistType(void) {
+   return blacklist_vars.blacklist_type;
 }
 
 /**
