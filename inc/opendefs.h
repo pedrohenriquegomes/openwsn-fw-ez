@@ -245,7 +245,7 @@ enum {
    ERR_NEIGHBORS_CHANGED_PARENT        = 0x3c, // preferred parent changed to {0}
    ERR_NEIGHBORS_NO_FOUND              = 0x40, // no neighbor found, code location {0}
    // uinject
-   ERR_UINJECT_SND                     = 0x3d, // uinject snd pkt to {0}
+   ERR_UINJECT_SND                     = 0x3d, // uinject snd pkt to {0}, counter {1}
    ERR_UINJECT_RCV                     = 0x3e, // uinject rcv pkt from {0}, delay {1}
    ERR_UINJECT_FWD                     = 0x3f, // uinject fwd pkt from {0} to {1}
    // blacklist
