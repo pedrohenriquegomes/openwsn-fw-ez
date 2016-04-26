@@ -17,15 +17,10 @@
 //=========================== define ==========================================
 
 // Blacklist types
-//#define BLACKLIST_DISABLED              0 // if blacklist is disabled
+#define BLACKLIST_DISABLED              0 // if blacklist is disabled
 #define BLACKLIST_TIMEOUT               1 // if blacklist is based on timeouts 
 #define BLACKLIST_MAB_FIRST_BEST_ARM    2 // if blacklist is based on Multi-armed with first best arm pulled
 #define BLACKLIST_MAB_BEST_ARM          3 // if blacklist is based on Multi-armed with best arm pulled
-
-// **** Set the BLACKLIST type here
-//#define BLACKLIST_DISABLED
-//#define BLACKLIST_TIMEOUT       // if blacklist mechanism is based on timeouts 
-#define BLACKLIST_MAB         // if blacklist mechanism is based on Multi-armed
 
 #define BLACKLIST_TIMEOUT_PERIOD_MS     (1000/MAXNUMNEIGHBORS)    // we check each neighbor every 1 second
 #define BLACK_THRESHOLD                 60    // when the counter reaches this values the channel is considered bad
@@ -42,12 +37,11 @@ enum {
 #define EXPLORE_MODULUS_MAX          200
 #define N_ARMS                       8      // the number of channels that will be considered, either for exploiting or for exploring
 #define N_MAX_MISSED                 15      // max number of packets missed in a row before detecting desync of blacklist
-#define MAB_POLICY                   BEST_ARM
 
 // For general blacklist
 #define DEFAULT_BLACKLIST               0x0000
 
-#define BLACKLIST_TYPE                  BLACKLIST_TIMEOUT
+#define BLACKLIST_TYPE                  BLACKLIST_MAB_BEST_ARM
 
 //=========================== typedef =========================================
 
@@ -69,9 +63,7 @@ typedef struct {
    uint8_t              oldestBlacklistIdx;     // either 0 or 1 (index of the oldest blacklist).
    uint8_t              blacklistMetric[16];    // this metric is used for including or removing a channel from the blacklist. Its meaning depends on the type
    // of blacklist mechanism being used (timeout-based or MAB-based)
-#ifdef BLACKLIST_MAB   
    uint8_t              n_missed_pkts;          // number of packets missed in a row. Used for detecting desync of blacklist
-#endif
 } blacklistNeighborRow_t;
 END_PACK
 
@@ -82,11 +74,8 @@ typedef struct {
    opentimer_id_t               timerId;                        // periodic timer which checks the channels
    uint8_t                      curNeighbor;
    uint8_t                      counter;                        // counts the number of times the timer fired
-#ifdef BLACKLIST_MAB   
-   uint8_t                      mab_policy;
    uint8_t                      epsilon;
    uint8_t                      random_channel_rank[16];
-#endif     
    blacklistNeighborRow_t       neighbors[MAXNUMNEIGHBORS];     // blacklist information for each neighbor
 } blacklist_vars_t;
 
@@ -101,7 +90,6 @@ void 	        blacklist_updateBlacklistRxData(uint16_t address, uint8_t dsn, uin
 uint16_t        blacklist_getUsedBlacklist(uint16_t address, bool oldest);
 uint8_t*        blacklist_getUsedRank(uint16_t address, bool oldest);
 uint16_t        blacklist_getCurrentBlacklist(uint16_t address);
-uint8_t         blacklist_getMABPolicy(void);
 uint8_t         blacklist_getBlacklistType(void);
 void            blacklist_updateCurrentBlacklistRx(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy);
 void            blacklist_updateCurrentBlacklistTx(uint16_t address, owerror_t error, uint8_t channel, uint8_t energy);
