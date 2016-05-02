@@ -57,7 +57,7 @@ void schedule_init() {
    // Unicast slot (s) -- they come from external agent (file ext_schedule.c)
    extScheduleEntry_t 	extScheduleEntry;
    uint8_t              i;
-   for (i = 0; running_slotOffset < NUM_EB_SLOTS + NUM_TXRX_SLOTS + NUM_UNICAST_SLOTS; running_slotOffset++, i++) {
+   for (i = 0; running_slotOffset < NUM_EB_SLOTS + NUM_TXRX_SLOTS + NUM_UNICAST_SLOTS*2; running_slotOffset+=2, i++) {
       // get the external schedule time slot
       getExtSchedule(idmanager_getMyShortID(), i, &extScheduleEntry);
       // only add time slot for the ON cases
