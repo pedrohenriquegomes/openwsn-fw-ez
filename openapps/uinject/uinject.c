@@ -166,7 +166,7 @@ void uinject_task_cb() {
    memset(&payload->filling,'S',PAYLOAD_FILLING);
    
    openserial_printInfo(COMPONENT_UINJECT, ERR_UINJECT_SND, 
-                        (errorparameter_t)payload->l3_dst, (errorparameter_t)payload->counter);
+                        (errorparameter_t)payload->l2_hdr.dst, (errorparameter_t)payload->counter);
    
    if ((sixtop_send(pkt))==E_FAIL) {
       openqueue_freePacketBuffer(pkt);

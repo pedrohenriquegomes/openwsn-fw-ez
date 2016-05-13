@@ -835,7 +835,7 @@ port_INLINE void activity_ti1ORri1() {
             
       case CELLTYPE_TXRX:
          // transmit with probability 1/2
-         if (openrandom_get16b() & 0x01) {
+         if ((openrandom_get16b() & 0x01) && cellType == CELLTYPE_TXRX) { // we have to check if cell is CELLTYPE_TXRX because we did not break for CELLTYPE_TX
             ieee154e_vars.dataToSend = openqueue_macGetDataPacket();
          }
          
