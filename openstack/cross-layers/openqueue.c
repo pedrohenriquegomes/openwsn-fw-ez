@@ -67,6 +67,19 @@ OpenQueueEntry_t* openqueue_getFreePacketBuffer(uint8_t creator) {
    return NULL;
 }
 
+uint8_t            openqueue_getFreeSpace(void) {
+   uint8_t i = 0;
+   
+   INTERRUPT_DECLARATION();
+   DISABLE_INTERRUPTS();
+   for (i=0;i<QUEUELENGTH;i++) {
+      if (openqueue_vars.queue[i].owner==COMPONENT_NULL) {
+         i++;
+      }
+   }
+   ENABLE_INTERRUPTS();
+   return i;  
+}
 
 /**
 \brief Free a previously-allocated packet buffer.
@@ -135,6 +148,21 @@ void openqueue_removeAllOwnedBy(uint8_t owner) {
    ENABLE_INTERRUPTS();
 }
 
+/**
+\brief Free all the packet buffers.
+
+\param owner The identifier of the component, taken in COMPONENT_*.
+*/
+void openqueue_removeAll(void) {
+   uint8_t i;
+   INTERRUPT_DECLARATION();
+   DISABLE_INTERRUPTS();
+   for (i=0;i<QUEUELENGTH;i++){
+      openqueue_reset_entry(&(openqueue_vars.queue[i]));
+   }
+   ENABLE_INTERRUPTS();
+}
+
 //======= called by RES
 
 OpenQueueEntry_t* openqueue_sixtopGetSentPacket() {
@@ -184,16 +212,16 @@ OpenQueueEntry_t* openqueue_macGetDataPacket(void) {
    return NULL;
 }
 
-OpenQueueEntry_t* openqueue_macGetDataPacketDestination(uint16_t dst) {
+OpenQueueEntry_t* openqueue_macGetDataPacketDestination(uint16_t dst_l2) {
    uint8_t i;
    INTERRUPT_DECLARATION();
    DISABLE_INTERRUPTS();
    for (i=0;i<QUEUELENGTH;i++) {
       if (openqueue_vars.queue[i].owner==COMPONENT_SIXTOP_TO_IEEE802154E &&
           openqueue_vars.queue[i].creator!=COMPONENT_SIXTOP) {
-         // we have to read the destion addr
+         // we have to read the destination addr
          l2_ht *payload = (l2_ht *)(openqueue_vars.queue[i].payload);
-         if (payload->dst == dst) {
+         if (payload->dst == dst_l2) {
             ENABLE_INTERRUPTS();
             return &openqueue_vars.queue[i];
          }

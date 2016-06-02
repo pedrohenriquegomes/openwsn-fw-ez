@@ -35,14 +35,17 @@ bool               debugPrint_queue(void);
 // called by any component
 OpenQueueEntry_t*  openqueue_getFreePacketBuffer(uint8_t creator);
 owerror_t          openqueue_freePacketBuffer(OpenQueueEntry_t* pkt);
+uint8_t            openqueue_getFreeSpace(void);
 void               openqueue_removeAllCreatedBy(uint8_t creator);
 void               openqueue_removeAllOwnedBy(uint8_t owner);
+void               openqueue_removeAll(void);
 // called by res
 OpenQueueEntry_t*  openqueue_sixtopGetSentPacket(void);
 OpenQueueEntry_t*  openqueue_sixtopGetReceivedPacket(void);
 // called by IEEE80215E
 OpenQueueEntry_t*  openqueue_macGetDataPacket(void);
-OpenQueueEntry_t*  openqueue_macGetDataPacketDestination(uint16_t dst);
+OpenQueueEntry_t*  openqueue_macGetDataPacketDestination(uint16_t dst_l2);
+OpenQueueEntry_t*  openqueue_macGetDataPacketDestinationSource(uint16_t dst_l3, uint16_t src_l3);
 OpenQueueEntry_t*  openqueue_macGetEBPacket(void);
 
 /**

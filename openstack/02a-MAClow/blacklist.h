@@ -84,9 +84,11 @@ typedef struct {
 void            blacklist_init(void);
 void            blacklist_reset(uint8_t neighborRow);
 void            blacklist_resetAll(void);
+
 void 	        blacklist_updateBlacklistTxData(uint16_t address, uint8_t dsn);
 void 	        blacklist_updateBlacklistRxAck(uint16_t address, uint8_t dsn, uint16_t blacklist, uint8_t *rank);
 void 	        blacklist_updateBlacklistRxData(uint16_t address, uint8_t dsn, uint8_t channel);
+
 uint16_t        blacklist_getUsedBlacklist(uint16_t address, bool oldest);
 uint8_t*        blacklist_getUsedRank(uint16_t address, bool oldest);
 uint16_t        blacklist_getCurrentBlacklist(uint16_t address);

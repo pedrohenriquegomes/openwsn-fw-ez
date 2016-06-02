@@ -557,6 +557,10 @@ port_INLINE void activity_synchronize_endOfFrame(PORT_RADIOTIMER_WIDTH capturedT
       // log the error
       openserial_printError(COMPONENT_IEEE802154E,ERR_NO_FREE_PACKET_BUFFER,
                             (errorparameter_t)0, (errorparameter_t)0);
+      
+      // there is no space in the queue, lets remove all packets from queue
+      openqueue_removeAll();
+      
       // abort
       endSlot();
       return;
@@ -736,7 +740,7 @@ port_INLINE void activity_ti1ORri1() {
   
 #ifdef UINJECT_SEND_ONE_PER_SLOTFRAME
    // make uinject generate one packet each slot frame
-   if (idmanager_getIsDAGroot()==FALSE && ieee154e_vars.slotOffset==0) {
+   if (idmanager_getIsDAGroot()==FALSE && ieee154e_vars.slotOffset==0 && openqueue_getFreeSpace() > (QUEUELENGTH/2) ) {
       uinject_task_cb();
    }
 #endif
@@ -835,7 +839,7 @@ port_INLINE void activity_ti1ORri1() {
             
       case CELLTYPE_TXRX:
          // transmit with probability 1/2
-         if (openrandom_get16b() & 0x01) {
+         if ((openrandom_get16b() & 0x01) && cellType == CELLTYPE_TXRX) { // we have to check if cell is CELLTYPE_TXRX because we did not break for CELLTYPE_TX
             ieee154e_vars.dataToSend = openqueue_macGetDataPacket();
          }
          
