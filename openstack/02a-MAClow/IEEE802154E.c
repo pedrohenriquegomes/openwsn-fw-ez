@@ -755,7 +755,7 @@ port_INLINE void activity_ti1ORri1() {
       ieee154e_vars.nextActiveSlotOffset = schedule_getNextActiveSlotOffset();
    } else {
       // logging the RSSI in the last 16 timeslots
-      if (idmanager_getMyShortID() == RSSI_SENSOR_ID) {
+      if (idmanager_getMyShortID() == RSSI_SENSOR_ID && ieee154e_vars.slotOffset>= 85) {
          ieee154e_vars.freq = calculateFrequency(schedule_getChannelOffset());
          // configure the radio for that frequency
          radio_setFrequency(ieee154e_vars.freq);
