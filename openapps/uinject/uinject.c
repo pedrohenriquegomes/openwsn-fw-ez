@@ -124,7 +124,7 @@ void uinject_task_cb() {
    if (ieee154e_isSynch() == FALSE) return;
    
    // don't run on dagroot
-   if (idmanager_getIsDAGroot()) {
+   if (idmanager_getIsDAGroot() || idmanager_getMyShortID() == RSSI_SENSOR_ID) {
       opentimers_stop(uinject_vars.timerId);
       return;
    }

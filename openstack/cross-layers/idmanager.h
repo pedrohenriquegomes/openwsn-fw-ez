@@ -16,7 +16,7 @@
 //#define SINK_ID                   0xed4f      //openmotes@home
 //#define SINK_ID                   0x6e29        //telosb@home
 #define SINK_ID                   0x6ce6        //telosb@tutornet
-
+#define RSSI_SENSOR_ID		  0x629b	// node4
 //=========================== typedef =========================================
 
 BEGIN_PACK

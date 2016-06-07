@@ -326,6 +326,13 @@ bool topology_isAcceptablePacket(uint16_t shortID) {
          returnVal=TRUE;
       }
       break;
+      case RSSI_SENSOR_ID:
+         if (
+            shortID==SINK_ID
+         ) {
+         returnVal=TRUE;
+      }
+      break;
    }
    return returnVal;
 #else
