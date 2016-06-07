@@ -555,7 +555,7 @@ port_INLINE void activity_synchronize_endOfFrame(PORT_RADIOTIMER_WIDTH capturedT
    ieee154e_vars.dataReceived = openqueue_getFreePacketBuffer(COMPONENT_IEEE802154E);
    if (ieee154e_vars.dataReceived==NULL) {
       // log the error
-      openserial_printCritical(COMPONENT_IEEE802154E,ERR_NO_FREE_PACKET_BUFFER,
+      openserial_printError(COMPONENT_IEEE802154E,ERR_NO_FREE_PACKET_BUFFER,
                             (errorparameter_t)0, (errorparameter_t)0);
       
       // there is no space in the queue, lets remove all packets from queue
@@ -754,6 +754,16 @@ port_INLINE void activity_ti1ORri1() {
       // find the next one
       ieee154e_vars.nextActiveSlotOffset = schedule_getNextActiveSlotOffset();
    } else {
+      // logging the RSSI in the last 16 timeslots
+      if (idmanager_getIsDAGroot() && ieee154e_vars.slotOffset >= 85) {
+         ieee154e_vars.freq = calculateFrequency(schedule_getChannelOffset());
+         // configure the radio for that frequency
+         radio_setFrequency(ieee154e_vars.freq);
+         int8_t rssi = radio_getRSSI();
+         openserial_printInfo(COMPONENT_IEEE802154E, ERR_BLACKLIST_RSSI,
+                             (errorparameter_t)ieee154e_vars.freq, (errorparameter_t)rssi);
+      }
+
       // this is NOT the next active slot, abort
       // stop using serial
       openserial_stop();
@@ -1160,6 +1170,10 @@ port_INLINE void activity_ti9(PORT_RADIOTIMER_WIDTH capturedTime) {
       // log the error
       openserial_printError(COMPONENT_IEEE802154E,ERR_NO_FREE_PACKET_BUFFER,
                             (errorparameter_t)1, (errorparameter_t)0);
+
+      // there is no space in the queue, lets remove all packets from queue
+      openqueue_removeAll();
+      
       // abort
       endSlot();
       return;
@@ -1391,6 +1405,10 @@ port_INLINE void activity_ri5(PORT_RADIOTIMER_WIDTH capturedTime) {
       // log the error
       openserial_printError(COMPONENT_IEEE802154E,ERR_NO_FREE_PACKET_BUFFER,
                             (errorparameter_t)2, (errorparameter_t)0);
+
+      // there is no space in the queue, lets remove all packets from queue
+      openqueue_removeAll();
+      
       // abort
       endSlot();
       return;
@@ -1529,6 +1547,9 @@ port_INLINE void activity_ri6() {
       // log the error
       openserial_printError(COMPONENT_IEEE802154E,ERR_NO_FREE_PACKET_BUFFER,
                             (errorparameter_t)3, (errorparameter_t)0);
+
+      // there is no space in the queue, lets remove all packets from queue
+      openqueue_removeAll();
       
       // indicate we received a packet anyway (we don't want to loose any)
       notif_receive(ieee154e_vars.dataReceived);

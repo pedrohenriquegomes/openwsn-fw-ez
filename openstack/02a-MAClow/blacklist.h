@@ -41,7 +41,7 @@ enum {
 // For general blacklist
 #define DEFAULT_BLACKLIST               0x0000
 
-#define BLACKLIST_TYPE                  BLACKLIST_MAB_FIRST_BEST_ARM
+#define BLACKLIST_TYPE                  BLACKLIST_DISABLED
 
 //=========================== typedef =========================================
 

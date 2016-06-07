@@ -72,6 +72,7 @@ void     radio_txNow(void);
 // RX
 void     radio_rxEnable(void);
 void     radio_rxNow(void);
+int8_t 	 radio_getRSSI(void);
 void     radio_getReceivedFrame(uint8_t* bufRead,
                                 uint8_t* lenRead,
                                 uint8_t  maxBufLen,

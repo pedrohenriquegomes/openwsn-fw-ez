@@ -257,7 +257,8 @@ enum {
    ERR_EXPLORE_BLACKLIST               = 0x55, // exploring bad channels, blacklist {0} row {1}
    ERR_UPDATE_SUCCESS_REWARD           = 0x56, // updated reward SUCCESS, channel {0}, row {1}
    ERR_UPDATE_FAILED_REWARD            = 0x57, // updated reward FAILED, channel {0}, row {1}
-   ERR_BLACKLIST_DESYNC                = 0x58, // blacklist desyncronized, row {0}         
+   ERR_BLACKLIST_DESYNC                = 0x58, // blacklist desyncronized, row {0}
+   ERR_BLACKLIST_RSSI                  = 0x59, // rssi at ch {0} is {1}
 };
 
 //=========================== typedef =========================================

@@ -254,6 +254,17 @@ void radio_rxNow(void) {
    // nothing to do, the radio is already listening.
 }
 
+int8_t radio_getRSSI(void) {
+   uint8_t rssi_ccr_thr[2];
+   
+   // put radio in reception mode
+   radio_rxEnable();
+   cc2420_spiReadReg(CC2420_RSSI_ADDR, &radio_vars.radioStatusByte, rssi_ccr_thr);
+   
+   // todo - check which byte is the correct
+   return (int8_t)rssi_ccr_thr[0];
+}
+
 void radio_getReceivedFrame(
       uint8_t* bufRead,
       uint8_t* lenRead,
