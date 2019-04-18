@@ -5,6 +5,7 @@ Source code with implementation of [MABO-TSCH][1] protocol.
 This code was based on [OpenWSN][2] 1.10.
 
 This protocol is an adaptation of TSCH protocol.
+
 It implements a distributed blacklist for improving the performance of multi-hop wireless networks that have to cope with high levels of external interference and multi-path fading.
 It was introduced in the paper below. Please cite it if you use this source code.
 
