@@ -1,27 +1,25 @@
-OpenWSN firmware: stuff that runs on a mote
+# MABO-TSCH - Multi-hop And Blacklisted-based Optimized TSCH
 
-Part of UC Berkeley's OpenWSN project, http://www.openwsn.org/.
+Source code with implementation of [MABO-TSCH][1] protocol.
 
-Build status
-------------
+This code was based on [OpenWSN][2] 1.10.
 
-|              builder                                                           |      build               | outcome
-| ------------------------------------------------------------------------------ | ------------------------ | -------
-| [Travis](https://travis-ci.org/openwsn-berkeley/openwsn-fw)                    | compile                  | [![Build Status](https://travis-ci.org/openwsn-berkeley/openwsn-fw.png?branch=develop)](https://travis-ci.org/openwsn-berkeley/openwsn-fw)
-| [OpenWSN builder](http://builder.openwsn.org/job/Firmware%20TelosB/)           | compile (TelosB)         | [![Build Status](http://builder.openwsn.org/buildStatus/icon?job=Firmware%20TelosB)](http://builder.openwsn.org/job/Firmware%20TelosB/)
-| [OpenWSN builder](http://builder.openwsn.org/job/Firmware%20GINA/)             | compile (GINA)           | [![Build Status](http://builder.openwsn.org/buildStatus/icon?job=Firmware%20GINA)](http://builder.openwsn.org/job/Firmware%20GINA/)
-| [OpenWSN builder](http://builder.openwsn.org/job/Firmware%20wsn430v13b/)       | compile (wsn430v13b)     | [![Build Status](http://builder.openwsn.org/buildStatus/icon?job=Firmware%20wsn430v13b)](http://builder.openwsn.org/job/Firmware%20wsn430v13b/)
-| [OpenWSN builder](http://builder.openwsn.org/job/Firmware%20wsn430v14/)        | compile (wsn430v14)      | [![Build Status](http://builder.openwsn.org/buildStatus/icon?job=Firmware%20wsn430v14)](http://builder.openwsn.org/job/Firmware%20wsn430v14/)
-| [OpenWSN builder](http://builder.openwsn.org/job/Firmware%20Z1/)               | compile (Z1)             | [![Build Status](http://builder.openwsn.org/buildStatus/icon?job=Firmware%20Z1)](http://builder.openwsn.org/job/Firmware%20Z1/)
-| [OpenWSN builder](http://builder.openwsn.org/job/Firmware%20OpenMote-CC2538/)  | compile (OpenMote-CC2538) | [![Build Status](http://builder.openwsn.org/buildStatus/icon?job=Firmware%20OpenMote-CC2538)](http://builder.openwsn.org/job/Firmware%20OpenMote-CC2538/)
-| [OpenWSN builder](http://builder.openwsn.org/job/Firmware%20OpenMoteSTM/)      | compile (OpenMoteSTM)    | [![Build Status](http://builder.openwsn.org/buildStatus/icon?job=Firmware%20OpenMoteSTM)](http://builder.openwsn.org/job/Firmware%20OpenMoteSTM/)
-| [OpenWSN builder](http://builder.openwsn.org/job/Firmware%20IoT-LAB_M3/)       | compile (IoT-LAB_M3)     | [![Build Status](http://builder.openwsn.org/buildStatus/icon?job=Firmware%20IoT-LAB_M3)](http://builder.openwsn.org/job/Firmware%20IoT-LAB_M3/)
-| [OpenWSN builder](http://builder.openwsn.org/job/Firmware%20Agilefox/)         | compile (Agilefox)     | [![Build Status](http://builder.openwsn.org/buildStatus/icon?job=Firmware%20Agilefox)](http://builder.openwsn.org/job/Firmware%20Agilefox/)
-| [OpenWSN builder](http://builder.openwsn.org/job/Firmware%20Python%20(simulation)/) | compile (Python, simulation) | [![Build Status](http://builder.openwsn.org/buildStatus/icon?job=Firmware%20Python%20(simulation))](http://builder.openwsn.org/job/Firmware%20Python%20(simulation)/)
-| [OpenWSN builder](http://builder.openwsn.org/job/Firmware%20Docs%20Publisher/) | publish documentation    | [![Build Status](http://builder.openwsn.org/buildStatus/icon?job=Firmware Docs Publisher)](http://builder.openwsn.org/job/Firmware%20Docs%20Publisher/)
+This protocol is an adaptation of TSCH protocol.
+It implements a distributed blacklist for improving the performance of multi-hop wireless networks that have to cope with high levels of external interference and multi-path fading.
+It was introduced in the paper below. Please cite it if you use this source code.
 
-Documentation
--------------
+```
+@article{gomes2018mabo,
+  title={MABO-TSCH: Multihop and blacklist-based optimized time synchronized channel hopping},
+  author={Gomes, Pedro Henrique and Watteyne, Thomas and Krishnamachari, Bhaskar},
+  journal={Transactions on Emerging Telecommunications Technologies},
+  volume={29},
+  number={7},
+  pages={e3223},
+  year={2018},
+  publisher={Wiley Online Library}
+}
+```
 
-- overview: https://openwsn.atlassian.net/wiki/
-- source code: http://openwsn-berkeley.github.io/firmware/
+[1]:http://anrg.usc.edu/www/papers/2017_Pedro_ETT_MABO_TSCH.pdf
+[2]:https://openwsn.atlassian.net/wiki/spaces/OW/overview
